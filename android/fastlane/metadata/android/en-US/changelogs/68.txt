@@ -1,0 +1,4 @@
+- Faster cryptography library
+- BTC V21 Compatibility
+- Reliability & Performance Improvements
+- Updated translations
