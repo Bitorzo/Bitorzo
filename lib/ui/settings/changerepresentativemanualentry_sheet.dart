@@ -36,7 +36,7 @@ import 'package:bitorzo_wallet_flutter/model/authentication_method.dart';
 import 'package:bitorzo_wallet_flutter/model/vault.dart';
 
 // TODO - add validations
-
+/* This class not needed for this project (BTC)
 class AppChangeRepresentativeManualEntrySheet {
   FocusNode _repFocusNode;
   TextEditingController _repController;
@@ -445,3 +445,4 @@ class AppChangeRepresentativeManualEntrySheet {
     }
   }
 }
+*/

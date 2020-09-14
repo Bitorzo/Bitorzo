@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'package:bitorzo_wallet_flutter/ui/contacts/add_contact.dart';
+import 'package:bitorzo_wallet_flutter/ui/server/set_server.dart';
 import 'package:event_taxi/event_taxi.dart';
 import 'package:flutter/services.dart';
 import 'package:logger/logger.dart';
@@ -455,6 +457,53 @@ class _SettingsSheetState extends State<SettingsSheet>
     return ret;
   }
 
+  List<Widget> _buildServerDialogForm() {
+    List<Widget> ret = new List();
+    AvailableLanguage.values.forEach((AvailableLanguage value) {
+      ret.add(SimpleDialogOption(
+        onPressed: () {
+          Navigator.pop(context, value);
+        },
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8.0),
+          child: Text(
+            LanguageSetting(value).getDisplayName(context),
+            style: AppStyles.textStyleDialogOptions(context),
+          ),
+        ),
+      ));
+    });
+    return ret;
+  }
+
+  Future<void> _setServerDialog() async {
+    AvailableLanguage selection = await showAppDialog<AvailableLanguage>(
+        context: context,
+        builder: (BuildContext context) {
+          return AppSimpleDialog(
+            title: Padding(
+              padding: const EdgeInsets.only(bottom: 10.0),
+              child: Text(
+                AppLocalization.of(context).setServerHeader,
+                style: AppStyles.textStyleDialogHeader(context),
+              ),
+            ),
+            children: _buildServerDialogForm(),
+          );
+        });
+    sl
+        .get<SharedPrefsUtil>()
+        .setLanguage(LanguageSetting(selection))
+        .then((result) {
+      if (StateContainer.of(context).curLanguage.language != selection) {
+        setState(() {
+          StateContainer.of(context).updateLanguage(LanguageSetting(selection));
+        });
+      }
+    });
+  }
+
+
   Future<void> _languageDialog() async {
     AvailableLanguage selection = await showAppDialog<AvailableLanguage>(
         context: context,
@@ -895,12 +944,13 @@ class _SettingsSheetState extends State<SettingsSheet>
                                   setState(() {
                                     _loadingAccounts = true;
                                   });
+                                  StateContainer.of(context).isSegwit().then((is_segwit) {
                                   StateContainer.of(context)
                                       .getSeed()
                                       .then((seed) {
                                     sl
                                         .get<DBHelper>()
-                                        .getAccounts(seed)
+                                        .getAccounts(seed, is_segwit)
                                         .then((accounts) {
                                       setState(() {
                                         _loadingAccounts = false;
@@ -908,7 +958,7 @@ class _SettingsSheetState extends State<SettingsSheet>
                                       AppAccountsSheet(accounts)
                                           .mainBottomSheet(context);
                                     });
-                                  });
+                                  });});
                                 }
                               },
                               padding: EdgeInsets.all(0.0),
@@ -1095,6 +1145,29 @@ class _SettingsSheetState extends State<SettingsSheet>
                           color: StateContainer.of(context).curTheme.text15,
                         ),
                         AppSettings.buildSettingsListItemSingleLine(
+                        context,
+                        AppLocalization.of(context).setServerHeader,
+                        AppIcons.setserver,
+                        onPressed: () {
+
+                          Navigator.of(context).pop();
+                          sl.get<SharedPrefsUtil>().getServerAddress().then((address) {
+                            Sheets.showAppHeightNineSheet(
+                                context: context,
+                                widget: SetServerSheet(serverAddress:address));
+                          });
+
+                        setState(() {
+                        //_contactsOpen = true;
+                        });
+                        //_controller.forward();
+                        }),
+
+                        Divider(
+                          height: 2,
+                          color: StateContainer.of(context).curTheme.text15,
+                        ),
+                        AppSettings.buildSettingsListItemSingleLine(
                             context,
                             AppLocalization.of(context).backupSecretPhrase,
                             AppIcons.backupseed, onPressed: () async {
@@ -1142,6 +1215,7 @@ class _SettingsSheetState extends State<SettingsSheet>
                           height: 2,
                           color: StateContainer.of(context).curTheme.text15,
                         ),
+                        /* TODO: add back in the future to support this feature on BTC
                         AppSettings.buildSettingsListItemSingleLine(
                             context,
                             AppLocalization.of(context).settingsTransfer,
@@ -1152,6 +1226,7 @@ class _SettingsSheetState extends State<SettingsSheet>
                           height: 2,
                           color: StateContainer.of(context).curTheme.text15,
                         ),
+                        */
                         /*
                     AppSettings.buildSettingsListItemSingleLine(
                         context,

@@ -244,6 +244,7 @@ class _AddContactSheetState extends State<AddContactSheet> {
                          */
                         inputFormatters: [
                           LengthLimitingTextInputFormatter(15),
+                          WhitelistingTextInputFormatter(RegExp("[-+0-9 ]")),
                         ],
                         textInputAction: TextInputAction.done,
                         maxLines: null,
@@ -384,6 +385,7 @@ class _AddContactSheetState extends State<AddContactSheet> {
                           AppButtonType.PRIMARY,
                           AppLocalization.of(context).addContact,
                           Dimens.BUTTON_TOP_DIMENS, onPressed: () async {
+                        _phoneController.text = _phoneController.text.replaceAll(" ", "").replaceAll("-", "");
                         if (await validateForm()) {
                           AppContact newContact = AppContact(
                               phone: widget.phone == null

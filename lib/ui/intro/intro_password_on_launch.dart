@@ -123,7 +123,8 @@ class _IntroPasswordOnLaunchState extends State<IntroPasswordOnLaunch> {
                         if (widget.seed != null) {
                             await sl.get<Vault>().setSeed(widget.seed);
                             await sl.get<DBHelper>().dropAccounts();
-                            await BitcoinUtil().loginAccount(widget.seed, context);
+                            bool is_segwit = await StateContainer.of(context).isSegwit();
+                            await BitcoinUtil().loginAccount(widget.seed, is_segwit, context);
                             StateContainer.of(context).requestUpdate();
                             String pin = await Navigator.of(context).push(
                                 MaterialPageRoute(builder:
@@ -136,10 +137,12 @@ class _IntroPasswordOnLaunchState extends State<IntroPasswordOnLaunch> {
                               _pinEnteredCallback(pin);
                             }
                         } else {
+                          bool is_segwit = await StateContainer.of(context).isSegwit();
+
                           sl.get<Vault>().setSeed(NanoSeeds.generateSeed()).then((result) {
                             // Update wallet
                             StateContainer.of(context).getSeed().then((seed) {
-                              BitcoinUtil().loginAccount(seed, context).then((_) {
+                              BitcoinUtil().loginAccount(seed,is_segwit, context).then((_) {
                                 StateContainer.of(context).requestUpdate();
                                 Navigator.of(context)
                                     .pushNamed('/intro_backup_safety');

@@ -61,6 +61,7 @@ import 'package:hex/hex.dart';
 import 'package:bitorzo_wallet_flutter/util/firebaseutil.dart';
 import 'package:bitcoin_flutter/src/payments/index.dart' show PaymentData;
 import 'package:bitcoin_flutter/src/payments/p2pkh.dart';
+import 'package:bitcoin_flutter/src/payments/p2Wpkh.dart';
 import 'package:bitorzo_wallet_flutter/util/numberutil.dart';
 
 class AppHomePage extends StatefulWidget {
@@ -151,9 +152,10 @@ class _AppHomePageState extends State<AppHomePage>
   }
 
   Future<void> _switchToAccount(String account) async {
+    bool is_segwit = await StateContainer.of(context).isSegwit();
     List<Account> accounts = await sl
         .get<DBHelper>()
-        .getAccounts(await StateContainer.of(context).getSeed());
+        .getAccounts(await StateContainer.of(context).getSeed(), is_segwit);
     for (Account a in accounts) {
       if (a.address == account &&
           a.address != StateContainer
@@ -316,8 +318,14 @@ class _AppHomePageState extends State<AppHomePage>
     }
   }
 
-  String getAddress(node, [network]) {
-    return P2PKH(
+  String getAddress(node, {network, segwit:true} ) {
+
+
+    return segwit?
+      P2WPKH(
+        data: new PaymentData(pubkey: node.publicKey), network: network).data
+        .address :
+      P2PKH(
         data: new PaymentData(pubkey: node.publicKey), network: network).data
         .address;
   }
@@ -342,6 +350,8 @@ class _AppHomePageState extends State<AppHomePage>
 
   Future<void> _updatePublicKeys(var context) async {
 
+    bool is_segwit = await StateContainer.of(context).isSegwit();
+
     String seed = await StateContainer.of(context).getSeed();
     bip32.BIP32 wallet = bip32.BIP32.fromSeed(HEX.decode(seed));
 
@@ -358,21 +368,56 @@ class _AppHomePageState extends State<AppHomePage>
     List<String> derived_public_keys = [];
     List<String> derived_change_keys = [];
 
+    int purpose_num = is_segwit ? 84 : 44;
+
     for (int i = 0; i < 20 - unused_num; i++) {
-      final child_public_key = getAddress(wallet.deriveHardened(StateContainer
-          .of(context)
-          .selectedAccount
-          .index).derive(0).derive(last_id + i + 1));
+
+      final child_public_key = getAddress(
+        // Backward compatability
+        is_segwit?
+          wallet
+          .deriveHardened(purpose_num) // Purpose: BIP44 hardened
+          .deriveHardened(0x0) // Coin Type: bitcoin
+          .deriveHardened(StateContainer.of(context).selectedAccount.index) // account
+          .derive(0) // change: External chain (recieve)
+          .derive(last_id + i + 1) :
+          wallet
+          .deriveHardened(StateContainer.of(context).selectedAccount.index) // account
+          .derive(0) // change: External chain (recieve)
+          .derive(last_id + i + 1)
+
+          ,  // address_index
+          segwit:is_segwit);
       derived_public_keys.add(child_public_key);
     }
 
     await FirebaseUtil.addUserRecievePublicKeys(derived_public_keys);
 
     for (int i = 0; i < 20 - change_unused_num; i++) {
-      final change_public_key = getAddress(wallet.deriveHardened(StateContainer
+
+      final change_public_key = getAddress(
+          is_segwit?
+          wallet
+          .deriveHardened(purpose_num)
+          .deriveHardened(0x0) // Coin Type: bitcoin
+          .deriveHardened(StateContainer
           .of(context)
           .selectedAccount
-          .index).derive(1).derive(change_last_id + i + 1));
+          .index)
+          .derive(1) // Internal chain (change)
+          .derive(change_last_id + i + 1):
+          wallet
+            .deriveHardened(StateContainer
+            .of(context)
+            .selectedAccount
+            .index)
+            .derive(1) // Internal chain (change)
+            .derive(change_last_id + i + 1)
+          , // address_index
+      segwit:is_segwit);
+
+
+
       derived_change_keys.add(change_public_key);
 
     }
@@ -458,7 +503,7 @@ class _AppHomePageState extends State<AppHomePage>
         .registerTo<UnconfirmedHomeEvent>()
         .listen((event) {
       //diffAndUpdateHistoryList(event.items);
-      diffAndUpdateUnconfirmedList(event.items);
+      diffAndUpdateUnconfirmedList(event.items ?? []);
       setState(() {
         _isRefreshing = false;
       });
@@ -986,16 +1031,16 @@ class _AppHomePageState extends State<AppHomePage>
       _unconfirmedListMap[StateContainer
           .of(context)
           .wallet
-          .address] = ListModel<AccountHistoryResponseItem>(
+          ?.address] = ListModel<AccountHistoryResponseItem>(
                       listKey:
                       _listKeyMap[StateContainer
                           .of(context)
                           .wallet
-                          .address ],
+                          ?.address ],
                       initialItems: StateContainer
                           .of(context)
                           .wallet
-                          .unconfirmed,
+                          ?.unconfirmed,
       );
     });
 
@@ -1006,7 +1051,7 @@ class _AppHomePageState extends State<AppHomePage>
           .curTheme
           .backgroundDark,
       child: AnimatedList(
-        key: _listKeyMap[StateContainer.of(context).wallet.address],
+        key: _listKeyMap[StateContainer.of(context).wallet?.address],
         padding: EdgeInsetsDirectional.fromSTEB(0, 5.0, 0, 15.0),
         initialItemCount:
             _historyListMap.length == 0 ? 0
@@ -1014,11 +1059,11 @@ class _AppHomePageState extends State<AppHomePage>
             (_historyListMap[StateContainer
             .of(context)
             .wallet
-            .address]?.length ?? 0) +
+            ?.address]?.length ?? 0) +
             (_unconfirmedListMap[StateContainer
             .of(context)
             .wallet
-            .address]?.length ?? 0) ,
+            ?.address]?.length ?? 0) ,
         itemBuilder: _buildItem1,
       ),
       onRefresh: _refresh,
@@ -1533,12 +1578,6 @@ class _AppHomePageState extends State<AppHomePage>
                             stepGranularity: 0.5,
                           ),
                           onPressed: () {
-
-//                            if (receive == null) {
-//                              print("SHIT");
-//                              return;
-//                            }
-
 
 
 

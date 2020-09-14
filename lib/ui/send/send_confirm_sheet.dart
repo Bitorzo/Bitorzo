@@ -43,6 +43,7 @@ import 'package:hex/hex.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert' as convert;
 
+
 class NotEnoughFundsForFeeException implements Exception {
   final _message;
   NotEnoughFundsForFeeException([this._message]);
@@ -83,12 +84,18 @@ class _SendConfirmSheetState extends State<SendConfirmSheet> {
   bool isMantaTransaction;
   String unusedChangeAddress;
   int calculatedFees = -1;
-  double fastestFees = 0;
-  double hourFees = 0;
-  double halfHourFees = -1;
+  dynamic fees_json = null; 
+  
+  // Depracted
+  //double fastestFees = 0;
+  //double hourFees = 0;
+  //double dayFees = 0;
+  //double halfHourFees = -1;
   String calculatedFeesDisplay = "...";
   double _fees_slider_value = 0;
   bool requestConfirmState = true;
+  int tx_vsize = -1;
+  List<UTXOSforTXResponseItem> UTXOS = null;
 
   StreamSubscription<AuthenticatedEventWithFees> _authSub;
 
@@ -109,8 +116,8 @@ class _SendConfirmSheetState extends State<SendConfirmSheet> {
   }
 
   void updateCalculatedFees(double new_fee) {
-    calculatedFees = (new_fee * 225).toInt();
-    print(calculatedFees);
+    calculatedFees = (new_fee * tx_vsize).toInt();
+    print("Calc fees:" + calculatedFees.toString());
     calculatedFeesDisplay = NumberUtil.SatoshiToMilliBTC(calculatedFees.toString());
   }
 
@@ -122,15 +129,19 @@ class _SendConfirmSheetState extends State<SendConfirmSheet> {
     this.isMantaTransaction = widget.manta != null && widget.paymentRequest != null;
     // Derive amount from raw amount
 
+
+
     Future.delayed(Duration.zero,() {
         _estimateFees().then((result)
         { setState(() {
           print(result);
-          hourFees = result["hourFee"]?.toDouble() ?? 0;
-          halfHourFees = result["halfHourFee"]?.toDouble() ?? 0;
-          fastestFees = result["fastestFee"]?.toDouble() ?? 0;
-          _fees_slider_value = fastestFees ;
-          updateCalculatedFees(_fees_slider_value);
+          fees_json = result; 
+          //dayFees = result["144"]?.toDouble() ?? 0;
+          //hourFees = result["6"]?.toDouble() ?? 0;
+          //halfHourFees = result["3"]?.toDouble() ?? 0;
+          //fastestFees = result["1"]?.toDouble() ?? 0;
+          _fees_slider_value = 5 ;
+          updateCalculatedFees(result["1"]);
         }); }
         );
     });
@@ -323,22 +334,29 @@ class _SendConfirmSheetState extends State<SendConfirmSheet> {
                       ),
                     ),
                            Slider(
-                            min: hourFees,
-                            max: fastestFees,
-                            label: _fees_slider_value == fastestFees ?
-                            "Fastest ($_fees_slider_value sat/b)" :
-                            _fees_slider_value == hourFees ?
-                            "~Hour ($_fees_slider_value sat/b)" :
-                            _fees_slider_value > halfHourFees ?
-                            "<30min ($_fees_slider_value sat/b)" :
-                            ">30min ($_fees_slider_value sat/b)"
+                            min: tx_vsize == 0 ? 0 : 0,
+                            max: tx_vsize == 0 ? 0 : 5,
+                            label: fees_json == null ? "Loading fee info"
+                            : _fees_slider_value > 4 ?
+                            "Fastest (${fees_json["1"]?.toDouble()?.toStringAsFixed(3) ?? "unkn"} sat/vb)":
+
+                            _fees_slider_value < 1 ?
+                            "~Day (${fees_json["144"]?.toDouble()?.toStringAsFixed(3) ?? "unkn"} sat/vb)" :
+                            "~${(4-_fees_slider_value).ceil()*10} min (${fees_json[(4-_fees_slider_value).ceil().toString()]?.toDouble()?.toStringAsFixed(3) ?? "unkn"} sat/vb)"
                             ,
-                            divisions: 5,
-                            value: _fees_slider_value ,
+                            divisions: 4,
+                            value: tx_vsize == 0 ? 0 : _fees_slider_value ,
                             onChanged: (value) {
                               setState(() {
                                 _fees_slider_value = value;
-                                updateCalculatedFees(_fees_slider_value);
+                                updateCalculatedFees(
+                                    _fees_slider_value > 4 ?
+                                    fees_json["1"] :
+                                    _fees_slider_value < 1 ?
+                                    fees_json["144"] :
+                                    fees_json[(4-_fees_slider_value).ceil().toString()]
+
+                                );
                               });
                             },
                           )
@@ -426,7 +444,7 @@ class _SendConfirmSheetState extends State<SendConfirmSheet> {
                           CaseChange.toUpperCase(
                               AppLocalization.of(context).confirm_wait_fees, context) :
                           CaseChange.toUpperCase(
-                              AppLocalization.of(context).confirm, context) ,
+                              AppLocalization.of(context).confirm, context),
                           Dimens.BUTTON_TOP_DIMENS, disabled: (calculatedFees == -1), onPressed: () async {
                         // Authenticate
                         AuthenticationMethod authMethod = await sl.get<SharedPrefsUtil>().getAuthMethod();
@@ -481,53 +499,61 @@ class _SendConfirmSheetState extends State<SendConfirmSheet> {
   }
 
 
+  Future<int> _getTxVirtualSize() async {
+    Transaction tx = await buildTx(fees : 0); // dummy fees
+    print(tx.toHex());
+    int tx_vsize = tx.virtualSize();  // tx.byteLength();
+    print("estimated TX ${tx_vsize} bytes long!");
+    return tx_vsize;
+  }
+
   Future<Map<String, dynamic>> _estimateFees() async {
 
+    final result = await _getTxVirtualSize();
 
-    int dummy_fees = 0; // Just to create a tx and observe its size
-    // Transaction tx = await buildTx(fees : dummy_fees); // TODO: Return when it can be done faster
-    int tx_bytes_length =  225;// tx.byteLength();
-    String fees_estimation_json_url = "https://bitcoinfees.earn.com/api/v1/fees/recommended";
-    int fastest_fee;
+    print(result);
+    tx_vsize = result;
+
+    int dummy_fees = 0; // Just to create a tx and
+    String fees_estimation_json_url = "https://blockstream.info/api/fee-estimates";
+
 
     // Retrieve online fee estimation
+
     final res = await http.get(fees_estimation_json_url, headers: {"Accept": "aplication/json"});
     var fees_json = json.decode(res.body);
+    print(fees_json);
     return fees_json;
-    try {
-
-
-    } catch(e) {
-
-    }
-
-    return {};
-    //return 1000; TODO: Delete
   }
 
   Future<Transaction> buildTx({int fees}) async {
 
     // await StateContainer.of(context).requestUtxoForTx(amount: NumberUtil.MilliBTCToSatoshi(widget.amountRaw));
     // Request server for utxos to use in the transaction
+
+    bool is_segwit = await StateContainer.of(context).isSegwit();
+
     int total_outputs_needed =
     min<int>((BigInt.parse(NumberUtil.MilliBTCToSatoshi(widget.amountRaw)) + BigInt.from(fees)).toInt(), StateContainer.of(context).wallet.accountBalance.toInt());
 
+    final resp = await sl.get<AccountService>().requestUtxosForTX(
+        account: StateContainer
+            .of(context)
+            .wallet
+            .address, amount: total_outputs_needed.toString());
 
-
-    final resp = await sl.get<AccountService>().requestUtxosForTX(account:StateContainer.of(context).wallet.address, amount: total_outputs_needed.toString());
-
-    if(resp.utxos.length == 0) {
+    if (resp.utxos.length == 0) {
       throw new Exception("No UTXOS available for that address");
     }
 
-    final UTXOS = resp.utxos;
-
+    UTXOS = resp.utxos;
     BigInt sum_UTXO_outputs = BigInt.from(0);
     for(UTXOSforTXResponseItem i in UTXOS) {
       sum_UTXO_outputs +=  BigInt.parse(i.total_output_amount);
     }
 
     // Lets sign the tx
+    int witness_value = 0;
     String seed = await StateContainer.of(context).getSeed();
     bip32.BIP32 wallet = bip32.BIP32.fromSeed(HEX.decode(seed));
     final txb = new TransactionBuilder();
@@ -537,33 +563,55 @@ class _SendConfirmSheetState extends State<SendConfirmSheet> {
 
     //int fees = 4760; // Constant fees (TODO: change to dynamic)
     // fees = 0 ;
+    print("fees for creation ${fees}");
 
     if(BigInt.from(int.parse(NumberUtil.MilliBTCToSatoshi(widget.amountRaw)) + fees) >= sum_UTXO_outputs) {
       if(sum_UTXO_outputs.toInt() - fees < 0) {
 
         throw NotEnoughFundsForFeeException();
       }
-      txb.addOutput(widget.destination, sum_UTXO_outputs.toInt() - fees);
+      witness_value = sum_UTXO_outputs.toInt() - fees;
+      txb.addOutput(widget.destination, witness_value);
+
     } else {
       final change_after_fees = sum_UTXO_outputs - BigInt.parse(NumberUtil.MilliBTCToSatoshi(widget.amountRaw)) - BigInt.from(fees);
 
-      txb.addOutput(widget.destination, int.parse(NumberUtil.MilliBTCToSatoshi(widget.amountRaw)));
+      print("Change is ${change_after_fees}");
+      witness_value = int.parse(NumberUtil.MilliBTCToSatoshi(widget.amountRaw));
+      txb.addOutput(widget.destination, witness_value);
+
       txb.addOutput(unusedChangeAddress, change_after_fees.toInt()); // change
+
     }
 
     for(final utxo in UTXOS) {
-      txb.addInput(utxo.tx_hash,int.parse(utxo.vout)); // Alice's previous transaction output, has 15000 satoshi
+      if(is_segwit) {
+        final p2wpkh = new P2WPKH(
+            data: new PaymentData(address: utxo.address))
+            .data;
+
+        txb.addInput(utxo.tx_hash,int.parse(utxo.vout), null, p2wpkh.output);
+      } else {
+        txb.addInput(utxo.tx_hash,int.parse(utxo.vout));
+      }
     }
 
     int vin_counter = 0 ;
     for(final utxo in UTXOS) {
-      ECPair ec = ECPair.fromPrivateKey(wallet.deriveHardened(StateContainer.of(context).selectedAccount.index).derivePath(utxo.address_path).privateKey);
-      txb.sign(vin: vin_counter, keyPair: ec);
+
+      ECPair ec = ECPair.fromPrivateKey(
+        // Backward compatability
+        is_segwit ?
+          wallet
+              .deriveHardened(is_segwit ? 84 : 44) // Purpose: BIP44 hardened
+              .deriveHardened(0x0) // Coin Type: bitcoin
+              .deriveHardened(StateContainer.of(context).selectedAccount.index)
+              .derivePath(utxo.address_path).privateKey :
+        wallet.deriveHardened(StateContainer.of(context).selectedAccount.index)
+        .derivePath(utxo.address_path).privateKey);
+      txb.sign(vin: vin_counter, keyPair: ec, witnessValue: int.parse(utxo.total_output_amount));
       vin_counter += 1;
     }
-
-    //print(int.parse(NumberUtil.MilliBTCToSatoshi(widget.amountRaw)));
-    // print(int.parse(StateContainer.of(context).selectedAccount.balance));
 
     // Send to destination, and find
     return txb.build();
@@ -576,8 +624,8 @@ class _SendConfirmSheetState extends State<SendConfirmSheet> {
     _showSendingAnimation(context);
 
     try {
+      print("Buildiing TX");
 
-      // await StateContainer.of(context).requestUtxoForTx(amount: NumberUtil.MilliBTCToSatoshi(widget.amountRaw));
 
       Transaction final_output = await buildTx(fees: fees);
 
@@ -592,11 +640,13 @@ class _SendConfirmSheetState extends State<SendConfirmSheet> {
                 .toInt(), final_output.toHex());
         FirebaseUtil.markChangeAddressAsUsed(unusedChangeAddress);
       } else {
+        print(final_output.toHex());
         Response response = await BitcoinUtil.publishTx(final_output.toHex());
 
         if (response.statusCode == 200) {
 
         } else {
+          print(response.body.toString());
           throw new Exception(
               'Publish tx request failed with status: ${response.statusCode}.');
         }
@@ -608,7 +658,7 @@ class _SendConfirmSheetState extends State<SendConfirmSheet> {
               widget.contact.phone, widget.destination);
         }
 
-        print(response.body);
+        print(response.body.toString());
       }
       // Now mark ddreeses as used
 

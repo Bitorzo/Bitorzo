@@ -286,47 +286,51 @@ class _AppAccountsWidgetState extends State<AppAccountsWidget> {
                               setState(() {
                                 _addingAccount = true;
                               });
-                              StateContainer.of(context).getSeed().then((seed) {
-                                sl.get<DBHelper>()
-                                    .addAccount(seed, 
-                                        nameBuilder: AppLocalization
-                                                .of(context)
-                                            .defaultNewAccountName)
-                                    .then((newAccount) {
-                                  _requestBalances(
-                                      context, [newAccount]);
-                                  StateContainer.of(context)
-                                      .updateRecentlyUsedAccounts();
-                                  widget.accounts.add(newAccount);
-                                  setState(() {
-                                    _addingAccount = false;
-                                    widget.accounts.sort((a, b) =>
-                                        a.index.compareTo(b.index));
-                                    // Scroll if list is full
-                                    if (expandedKey.currentContext !=
-                                        null) {
-                                      RenderBox box = expandedKey
-                                          .currentContext
-                                          .findRenderObject();
-                                      if (widget.accounts.length * 72.0 >=
-                                          box.size.height) {
-                                        _scrollController.animateTo(
-                                          newAccount.index * 72.0 >
-                                                  _scrollController
-                                                      .position
-                                                      .maxScrollExtent
-                                              ? _scrollController
-                                                      .position
-                                                      .maxScrollExtent +
-                                                  72.0
-                                              : newAccount.index *
-                                                  72.0,
-                                          curve: Curves.easeOut,
-                                          duration: const Duration(
-                                              milliseconds: 200),
-                                        );
+                              StateContainer.of(context).isSegwit().then((is_segwit) {
+                                StateContainer.of(context).getSeed().then((
+                                    seed) {
+                                  sl.get<DBHelper>()
+                                      .addAccount(seed,
+                                      is_segwit,
+                                      nameBuilder: AppLocalization
+                                          .of(context)
+                                          .defaultNewAccountName)
+                                      .then((newAccount) {
+                                    _requestBalances(
+                                        context, [newAccount]);
+                                    StateContainer.of(context)
+                                        .updateRecentlyUsedAccounts();
+                                    widget.accounts.add(newAccount);
+                                    setState(() {
+                                      _addingAccount = false;
+                                      widget.accounts.sort((a, b) =>
+                                          a.index.compareTo(b.index));
+                                      // Scroll if list is full
+                                      if (expandedKey.currentContext !=
+                                          null) {
+                                        RenderBox box = expandedKey
+                                            .currentContext
+                                            .findRenderObject();
+                                        if (widget.accounts.length * 72.0 >=
+                                            box.size.height) {
+                                          _scrollController.animateTo(
+                                            newAccount.index * 72.0 >
+                                                _scrollController
+                                                    .position
+                                                    .maxScrollExtent
+                                                ? _scrollController
+                                                .position
+                                                .maxScrollExtent +
+                                                72.0
+                                                : newAccount.index *
+                                                72.0,
+                                            curve: Curves.easeOut,
+                                            duration: const Duration(
+                                                milliseconds: 200),
+                                          );
+                                        }
                                       }
-                                    }
+                                    });
                                   });
                                 });
                               });

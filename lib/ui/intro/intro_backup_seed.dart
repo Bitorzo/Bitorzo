@@ -190,11 +190,14 @@ class _IntroBackupSeedState extends State<IntroBackupSeedPage> {
                         onPressed: () {
                           // Update wallet
                           sl.get<DBHelper>().dropAccounts().then((_) {
-                            StateContainer.of(context).getSeed().then((seed) {
-                              BitcoinUtil().loginAccount(seed, context).then((_) {
-                                StateContainer.of(context).requestUpdate();
-                                Navigator.of(context)
-                                    .pushNamed('/intro_backup_confirm');
+                            StateContainer.of(context).isSegwit().then((is_segwit) {
+                              StateContainer.of(context).getSeed().then((seed) {
+                                BitcoinUtil().loginAccount(seed, is_segwit, context).then((
+                                    _) {
+                                  StateContainer.of(context).requestUpdate();
+                                  Navigator.of(context)
+                                      .pushNamed('/intro_backup_confirm');
+                                });
                               });
                             });
                           });

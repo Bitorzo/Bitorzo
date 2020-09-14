@@ -48,7 +48,6 @@ class AppLocalization {
   }
 
 
-
   String get confirm_wait_fees {
     return Intl.message('Loading Fee Info',
         desc: 'dialog_confirm_wait_fees', name: 'confirm_wait_fees');
@@ -121,25 +120,16 @@ class AppLocalization {
         desc: 'contacts_header', name: 'contacts');
   }
 
-  String get pendingPublickKeyDescription {
-    return Intl.message("This public key is used to encrypt signed pending transactions sent to this contact",
-        desc: 'phone_copied', name: 'phoneCopied');
-  }
-
-  String get pendingPublickKeyMeDescription {
-    return Intl.message("This public key is used to encrypt signed pending transactions sent to you",
-        desc: 'phone_copied', name: 'phoneCopied');
-  }
-
-  String get phoneCopied {
-    return Intl.message('Phone Copied',
-        desc: 'phone_copied', name: 'phoneCopied');
-  }
 
 
   String get addressCopied {
     return Intl.message('Address Copied',
         desc: 'receive_copied', name: 'addressCopied');
+  }
+
+  String get phoneCopied {
+    return Intl.message('Phone Copied',
+        desc: 'phone_copied', name: 'phoneCopied');
   }
 
   String get copyAddress {
@@ -229,6 +219,27 @@ class AppLocalization {
   String get contactHeader {
     return Intl.message('Contact',
       desc: 'contact_view_header', name: 'contactHeader');
+  }
+
+  String get setServerHeader {
+    return Intl.message('Set Server Address',
+        desc: 'change_server_header', name: 'changeServerHeader');
+  }
+
+  String get restoreDefaultServerButton {
+    return Intl.message('Restore To Default',
+        desc: 'change_server_button', name: 'changeServerButton');
+  }
+
+  String get setServerButton {
+    return Intl.message('Set Address',
+        desc: 'change_server_button', name: 'changeServerButton');
+  }
+
+
+  String get setServerAddressHint {
+    return Intl.message('Enter Server Address',
+        desc: 'set_server_address_hint', name: 'setServerAddressHint');
   }
 
   String get contactsHeader {
@@ -366,6 +377,12 @@ class AppLocalization {
         desc: 'request_confirmation', name: 'request_confirmation');
   }
 
+  String get segwitEnabledWallet {
+    return Intl.message("Segwit Enabled",
+        desc: 'segwit_enabled_wallet', name: 'segwit_enabled_wallet');
+  }
+
+
   String get sendAmountConfirm {
     return Intl.message("Send %1 mBTC",
         desc: 'send_pin_description', name: 'sendAmountConfirm');
@@ -430,6 +447,17 @@ class AppLocalization {
     return Intl.message("Please Enter a Number",
         desc: 'send_enter_number', name: 'numberMising');
   }
+
+  String get serverAddressMising {
+    return Intl.message("Please Enter a server address",
+        desc: 'server_address_mising', name: 'serverAddressMising');
+  }
+
+  String get serverAddressInvalidPrefix {
+    return Intl.message("Server address prefix can't be http/https",
+        desc: 'server_address_invalid_prefix', name: 'serverAddressInvalidPrefix');
+  }
+
 
   String get amountMissing {
     return Intl.message("Please Enter an Amount",
@@ -1235,16 +1263,14 @@ class AppLocalization {
   /// -- NON-TRANSLATABLE ITEMS
   String getBlockExplorerUrl(String hash) {
     return 'https://blockstream.info/tx/$hash';
-    //return 'https://nanocrawler.cc/explorer/block/$hash';
   }
 
   String getAccountExplorerUrl(String account) {
     return 'https://blockstream.info/$account';
-    //return 'https://nanocrawler.cc/explorer/account/$account';
+
   }
 
   String get eulaUrl {
-    //return 'https://avengemedia.github.io/kalium/eula_natrium.html';
     return 'https://www.eulatemplate.com/live.php?token=pf4nxy8j3G9AKpRUD9PlV53MfWAjrdI9';
   }
 

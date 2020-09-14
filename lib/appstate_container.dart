@@ -131,23 +131,6 @@ class StateContainerState extends State<StateContainer> {
     });
   }
 
-  Future<void> checkAndCacheNinjaAPIResponse() async {
-    List<NinjaNode> nodes;
-    if ((await sl.get<SharedPrefsUtil>().getNinjaAPICache()) == null) {
-      nodes = await NinjaAPI.getVerifiedNodes();
-      setState(() {
-        nanoNinjaNodes = nodes;
-        nanoNinjaUpdated = true;
-      });
-    } else {
-      nodes = await NinjaAPI.getCachedVerifiedNodes();
-      setState(() {
-        nanoNinjaNodes = nodes;
-        nanoNinjaUpdated = false;
-      });
-    }
-  }
-
   @override
   void initState() {
     super.initState();
@@ -176,8 +159,7 @@ class StateContainerState extends State<StateContainer> {
        initialDeepLink = initialLink;
       });
     });
-    // Cache ninja API if don't already have it
-    checkAndCacheNinjaAPIResponse();
+
   }
 
   // Subscriptions
@@ -265,13 +247,16 @@ class StateContainerState extends State<StateContainer> {
             EventTaxiImpl.singleton().fire(AccountChangedEvent(account: recentSecondLast, noPop: true));
           } else if (event.account.index == selectedAccount.index) {
             getSeed().then((seed) {
-              sl.get<DBHelper>().getMainAccount(seed).then((mainAccount) {
+              isSegwit().then((is_segwit) {
+              sl.get<DBHelper>().getMainAccount(seed, is_segwit).then((mainAccount) {
                 sl.get<DBHelper>().changeAccount(mainAccount);
                 setState(() {
                   selectedAccount = mainAccount;
                 });
-                EventTaxiImpl.singleton().fire(AccountChangedEvent(account: mainAccount, noPop: true)); 
-              });  
+                EventTaxiImpl.singleton().fire(
+                    AccountChangedEvent(account: mainAccount, noPop: true));
+              });
+              });
             });       
           }
         });
@@ -326,7 +311,8 @@ class StateContainerState extends State<StateContainer> {
 
   // Update the global wallet instance with a new address
   Future<void> updateWallet({Account account}) async {
-    String address = BitcoinUtil.seedToAddress(await getSeed(), account.index, base58 : true);
+
+    String address = BitcoinUtil.seedToAddress(await getSeed(), account.index,  await isSegwit(), base58 : true);
     account.address = address;
     selectedAccount = account;
     updateRecentlyUsedAccounts();
@@ -337,7 +323,7 @@ class StateContainerState extends State<StateContainer> {
   }
 
   Future<void> updateRecentlyUsedAccounts() async {
-    List<Account> otherAccounts = await sl.get<DBHelper>().getRecentlyUsedAccounts(await getSeed());
+    List<Account> otherAccounts = await sl.get<DBHelper>().getRecentlyUsedAccounts(await getSeed(), await isSegwit());
     if (otherAccounts != null && otherAccounts.length > 0) {
       if (otherAccounts.length > 1) {
         setState(() {
@@ -533,7 +519,9 @@ class StateContainerState extends State<StateContainer> {
   /// Request balances for accounts in our database
   Future<void> _requestBalances() async {
 
-    List<Account> accounts = await sl.get<DBHelper>().getAccounts(await getSeed());
+    print("Balances Req");
+    List<Account> accounts = await sl.get<DBHelper>().getAccounts(await getSeed(), await isSegwit());
+
     List<String> addressToRequest = List();
     accounts.forEach((account) {
       if (account.address != null) {
@@ -542,7 +530,7 @@ class StateContainerState extends State<StateContainer> {
     });
     AccountsBalancesResponse resp = await sl.get<AccountService>().requestAccountsBalances(addressToRequest);
     print(resp);
-    sl.get<DBHelper>().getAccounts(await getSeed()).then((accounts) {
+    sl.get<DBHelper>().getAccounts(await getSeed(), await isSegwit()).then((accounts) {
       //log.d("1");
       accounts.forEach((account) {
         //log.d("2");
@@ -565,6 +553,7 @@ class StateContainerState extends State<StateContainer> {
   }
 
   Future<void> requestUpdate({bool pending = true}) async {
+    print("Requesting update!!");
     if (wallet != null &&
         wallet.address != null &&
         Address(wallet.address).isValid()) {
@@ -585,14 +574,12 @@ class StateContainerState extends State<StateContainer> {
       sl.get<AccountService>().processQueue();
       // Request account history
 
-      // Choose correct blockCount to minimize bandwidth
-      // This is can still be improved because history excludes change/open, blockCount doesn't
-      // Get largest count we have + 5 (just a safe-buffer)
       int count = 500;
       if (wallet.history != null && wallet.history.length > 1) {
         count = 50;
       }
       try {
+        print("haboshabosasda");
         AccountHistoryResponse resp = await sl.get<AccountService>()
             .requestAccountHistory(wallet.address, count: count);
 
@@ -724,10 +711,6 @@ class StateContainerState extends State<StateContainer> {
     sl.get<AccountService>().clearQueue();
   }
 
-  Future<String> _getPrivKey() async {
-    String seed = await getSeed();
-    return BitcoinUtil.seedToPrivate(seed, selectedAccount.index);
-  }
 
   Future<String> getSeed() async {
     String seed;
@@ -737,6 +720,10 @@ class StateContainerState extends State<StateContainer> {
       seed = await sl.get<Vault>().getSeed();
     }
     return seed;
+  }
+
+  Future<bool> isSegwit() async {
+    return await sl.get<Vault>().isSegwit();
   }
 
   // Simple build method that just passes this state through

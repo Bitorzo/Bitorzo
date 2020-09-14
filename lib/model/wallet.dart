@@ -7,7 +7,7 @@ import 'package:bitorzo_wallet_flutter/util/numberutil.dart';
 
 /// Main wallet object that's passed around the app via state
 class AppWallet {
-  static const String defaultRepresentative = 'nano_1natrium1o3z5519ifou7xii8crpxpk8y65qmkih8e8bpsjri651oza8imdd';
+  static const String defaultRepresentative = '';
 
   bool _loading; // Whether or not app is initially loading
   bool _historyLoading; // Whether or not we have received initial account history response
@@ -62,11 +62,15 @@ class AppWallet {
   }
 
   bool hasUnconfirmed() {
-    return (_unconfirmed.length != 0);
+    return (_unconfirmed?.length != 0 ?? 0);
   }
 
   BigInt getSumUnconfirmed() {
     BigInt sum = new BigInt.from(0);
+
+    if(_unconfirmed == null) {
+      return sum;
+    }
 
     for(AccountHistoryResponseItem i in _unconfirmed) {
       if (i.type == BlockTypes.RECEIVE_UNCONFIRMED) {

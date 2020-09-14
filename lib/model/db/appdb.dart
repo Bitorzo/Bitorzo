@@ -1,8 +1,5 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io' as io;
-import 'package:flutter/services.dart';
-import 'package:bitorzo_wallet_flutter/data_models/country.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path_provider/path_provider.dart';
@@ -21,7 +18,6 @@ class DBHelper {
   static const String MYACCOUNT_SQL = """CREATE TABLE MYACCOUNT( 
         id INTEGER PRIMARY KEY AUTOINCREMENT, 
         phone TEXT)""";
-
   static const String ACCOUNTS_SQL = """CREATE TABLE Accounts( 
         id INTEGER PRIMARY KEY AUTOINCREMENT, 
         name TEXT, 
@@ -176,7 +172,6 @@ class DBHelper {
     return count > 0;
   }
 
-
   Future<int> saveContact(AppContact contact, {bool checkIfExists = true}) async {
     var dbClient = await db;
 
@@ -220,7 +215,7 @@ class DBHelper {
   }
 
   // Accounts
-  Future<List<Account>> getAccounts(String seed) async {
+  Future<List<Account>> getAccounts(String seed, bool is_segwit) async {
     var dbClient = await db;
     List<Map> list =
         await dbClient.rawQuery('SELECT * FROM Accounts ORDER BY acct_index');
@@ -235,12 +230,12 @@ class DBHelper {
           balance: list[i]["balance"]));
     }
     accounts.forEach((a) {
-      a.address = BitcoinUtil.seedToAddress(seed, a.index);
+      a.address = BitcoinUtil.seedToAddress(seed, a.index, is_segwit);
     });
     return accounts;
   }
 
-  Future<List<Account>> getRecentlyUsedAccounts(String seed,
+  Future<List<Account>> getRecentlyUsedAccounts(String seed, bool is_segwit,
       {int limit = 2}) async {
     var dbClient = await db;
     List<Map> list = await dbClient.rawQuery(
@@ -257,12 +252,12 @@ class DBHelper {
           balance: list[i]["balance"]));
     }
     accounts.forEach((a) {
-      a.address = BitcoinUtil.seedToAddress(seed, a.index);
+      a.address = BitcoinUtil.seedToAddress(seed, a.index, is_segwit);
     });
     return accounts;
   }
 
-  Future<Account> addAccount(String seed, {String nameBuilder}) async {
+  Future<Account> addAccount(String seed, bool is_segwit, {String nameBuilder}) async {
     var dbClient = await db;
     Account account;
     await dbClient.transaction((Transaction txn) async {
@@ -284,7 +279,7 @@ class DBHelper {
           name: nextName,
           lastAccess: 0,
           selected: false,
-          address: BitcoinUtil.seedToAddress(seed, nextIndex));
+          address: BitcoinUtil.seedToAddress(seed, nextIndex, is_segwit));
       await txn.rawInsert(
           'INSERT INTO Accounts (name, acct_index, last_accessed, selected, address) values(?, ?, ?, ?, ?)',
           [
@@ -390,7 +385,7 @@ class DBHelper {
         [balance, account.index]);
   }
 
-  Future<Account> getSelectedAccount(String seed) async {
+  Future<Account> getSelectedAccount(String seed, bool is_segwit) async {
     var dbClient = await db;
     List<Map> list =
         await dbClient.rawQuery('SELECT * FROM Accounts where selected = 1');
@@ -398,7 +393,7 @@ class DBHelper {
       return null;
     }
     String address =
-        BitcoinUtil.seedToAddress(seed, list[0]["acct_index"]);
+        BitcoinUtil.seedToAddress(seed, list[0]["acct_index"], is_segwit);
     Account account = Account(
         id: list[0]["id"],
         name: list[0]["name"],
@@ -410,7 +405,7 @@ class DBHelper {
     return account;
   }
 
-  Future<Account> getMainAccount(String seed) async {
+  Future<Account> getMainAccount(String seed, bool is_segwit) async {
     var dbClient = await db;
     List<Map> list =
         await dbClient.rawQuery('SELECT * FROM Accounts where acct_index = 0');
@@ -418,7 +413,7 @@ class DBHelper {
       return null;
     }
     String address =
-        BitcoinUtil.seedToAddress(seed, list[0]["acct_index"]);
+        BitcoinUtil.seedToAddress(seed, list[0]["acct_index"], is_segwit);
     Account account = Account(
         id: list[0]["id"],
         name: list[0]["name"],
@@ -447,4 +442,11 @@ class DBHelper {
 
     return true;
 
-  }}
+  }
+
+  void setSegwitWallet(bool value) async {
+
+
+  }
+
+}

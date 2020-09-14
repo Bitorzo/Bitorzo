@@ -13,9 +13,11 @@ import 'package:bitcoin_flutter/bitcoin_flutter.dart';
 
 // Singleton for keystore access methods in android/iOS
 class Vault {
-  static const String seedKey = 'fkalium_seed';
-  static const String encryptionKey = 'fkalium_secret_phrase';
-  static const String pinKey = 'fkalium_pin';
+  static const String seedKey = 'bitorzo_seed';
+  static const String serverAddressKey = 'bitorzo_server';
+  static const String segwitEnabled = 'bitorzo_segwit_enabled';
+  static const String encryptionKey = 'bitorzo_secret_phrase';
+  static const String pinKey = 'bitorzo_pin';
   static const String sessionKey = 'fencsess_key';
   final FlutterSecureStorage secureStorage = new FlutterSecureStorage();
 
@@ -59,6 +61,23 @@ class Vault {
 
   Future<String> setSeed(String seed) async {
     return await _write(seedKey, seed);
+  }
+
+  // Specific keys
+  Future<String> getServerAddress() async {
+    return await _read(serverAddressKey);
+  }
+
+  Future<String> setServerAddress(String serverAddress) async {
+    return await _write(serverAddressKey, serverAddress);
+  }
+
+  Future<bool> isSegwit() async {
+    return await _read(segwitEnabled) == true.toString();
+  }
+
+  Future<bool> setSegwit(bool segwit_enabled) async {
+    return await _write(segwitEnabled, segwit_enabled.toString()) == true.toString();
   }
 
 

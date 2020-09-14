@@ -245,8 +245,9 @@ class _AppPasswordLockScreenState extends State<AppPasswordLockScreen> {
     if (StateContainer.of(context).wallet != null) {
       StateContainer.of(context).reconnect();
     } else {
+      bool is_segwit = await StateContainer.of(context).isSegwit();
       await BitcoinUtil()
-          .loginAccount(await StateContainer.of(context).getSeed(), context);
+          .loginAccount(await StateContainer.of(context).getSeed(), is_segwit, context);
     }
     StateContainer.of(context).requestUpdate();
     PriceConversion conversion = await sl.get<SharedPrefsUtil>().getPriceConversion();

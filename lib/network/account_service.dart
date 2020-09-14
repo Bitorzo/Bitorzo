@@ -41,15 +41,10 @@ import 'package:bitorzo_wallet_flutter/bus/events.dart';
 import 'model/request/account_unconfirmed_request.dart';
 
 // Server Connection String
-//const String _SERVER_ADDRESS = "wss://app.natrium.io";
-// TODO : rewrite back as wss when deployed
-// const String _SERVER_ADDRESS = "ws://10.0.2.2:8000/";
-const String _SERVER_ADDRESS = "ws://bitorzo.ddns.net:8000/";
-//final _SERVER_ADDRESS = new Uri.http("192.168.1.14:8000", "/");
-//const String _SERVER_ADDRESS_HTTP = "https://app.natrium.io/api";
-// const String _SERVER_ADDRESS_HTTP = "http://10.0.2.2:8080/";
-const String _SERVER_ADDRESS_HTTP = "http://bitorzo.ddns.net:8080/";
-//final _SERVER_ADDRESS_HTTP = new Uri.http("192.168.1.14:8","/");
+// Important TODO : support https and wss
+const String _SERVER_ADDRESS_WEBSOCKET_FORMAT = "ws://{}:9091/";
+const String _SERVER_ADDRESS_HTTP_FORMAT = "http://{}:9090/";
+
 Map decodeJson(dynamic src) {
   return json.decode(src);
 }
@@ -122,8 +117,10 @@ class AccountService {
 
       _isConnecting = true;
       suspended = false;
+      String serverAddress = await sl.get<SharedPrefsUtil>().getServerAddress();
+
       _channel = new IOWebSocketChannel
-                      .connect(_SERVER_ADDRESS,
+                      .connect(_SERVER_ADDRESS_WEBSOCKET_FORMAT.replaceAll("{}", serverAddress),
                                headers: {
                                 'X-Client-Version': packageInfo.buildNumber
                                });
@@ -349,8 +346,10 @@ class AccountService {
   // HTTP API
 
   Future<dynamic> makeHttpRequest(BaseRequest request) async {
+    String serverAddress = await sl.get<SharedPrefsUtil>().getServerAddress();
+
     http.Response response = await http.post(
-      _SERVER_ADDRESS_HTTP,
+      _SERVER_ADDRESS_HTTP_FORMAT.replaceAll("{}", serverAddress),
       headers:  {
         'Content-type': 'application/json'
       },

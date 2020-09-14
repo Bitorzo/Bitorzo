@@ -35,6 +35,7 @@ import 'package:bitorzo_wallet_flutter/model/vault.dart';
 
 import 'changerepresentativemanualentry_sheet.dart';
 
+/* This class not needed for this project (BTC)
 class AppChangeRepresentativeSheet {
   // State variables
   bool _addressCopied = false;
@@ -604,3 +605,4 @@ class AppChangeRepresentativeSheet {
     }
   }
 }
+*/

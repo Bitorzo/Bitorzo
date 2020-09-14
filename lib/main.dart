@@ -8,6 +8,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:logger/logger.dart';
+import 'package:bitorzo_wallet_flutter/network/account_service.dart';
 import 'package:bitorzo_wallet_flutter/model/available_language.dart';
 import 'package:bitorzo_wallet_flutter/ui/before_scan_screen.dart';
 import 'package:bitorzo_wallet_flutter/ui/intro/intro_backup_safety.dart';
@@ -34,16 +35,17 @@ import 'package:bitorzo_wallet_flutter/model/vault.dart';
 import 'package:bitorzo_wallet_flutter/util/bitcoinutil.dart';
 import 'package:bitorzo_wallet_flutter/util/sharedprefsutil.dart';
 import 'package:root_checker/root_checker.dart';
-import 'package:flutter/material.dart';
 import 'package:bitorzo_wallet_flutter/providers/countries.dart';
 import 'package:bitorzo_wallet_flutter/providers/phone_auth.dart';
 import 'package:provider/provider.dart';
 import 'firebase/auth/phone_auth/get_phone.dart';
 import 'model/db/appdb.dart';
-  import 'package:bitorzo_wallet_flutter/util/firebaseutil.dart';
+import 'package:bitorzo_wallet_flutter/util/firebaseutil.dart';
+
+const String _DEFAULT_SERVER_ADDRESS = "bitorzo.ddns.net";
 
 class FireApp extends StatelessWidget {
-    @override
+    @override 
     Widget build(BuildContext context) {
       return MultiProvider(
         providers: [
@@ -99,9 +101,10 @@ class _AppState extends State<App> {
     return StreamBuilder<FirebaseUser>(
       stream: FirebaseAuth.instance.onAuthStateChanged,
       builder: (BuildContext context, snapshot) {
+
         // Supports only phone auth right now (provider data), should be changed to support more approahecs
         if (snapshot.hasData && snapshot.data.phoneNumber != null) {
-          // Save local number to local DB
+          //print("${snapshot.data?.phoneNumber} ${snapshot.data?.uid} ${snapshot.data?.providerData?.length}");
           if (snapshot.data?.providerData?.length == 2) {
             // Phone authentication
             FirebaseUtil.addUidPhonePairToLookupTable();
@@ -301,6 +304,7 @@ class _AppState extends State<App> {
             ),
           );
         } else {
+
           return  FireApp();
         }
       },
@@ -572,6 +576,10 @@ class SplashState extends State<Splash> with WidgetsBindingObserver {
       return;
     }
 
+    // If no address server is not configured pick default
+    if (await sl.get<SharedPrefsUtil>().getServerAddress() == null) {
+      await sl.get<SharedPrefsUtil>().setServerAddress(_DEFAULT_SERVER_ADDRESS);
+    }
 
     if (!_hasCheckedLoggedIn) {
       _hasCheckedLoggedIn = true;
@@ -584,7 +592,9 @@ class SplashState extends State<Splash> with WidgetsBindingObserver {
       bool firstLaunch = await sl.get<SharedPrefsUtil>().getFirstLaunch();
       if (firstLaunch) {
         await sl.get<Vault>().deleteAll();
+        await sl.get<SharedPrefsUtil>().setServerAddress(_DEFAULT_SERVER_ADDRESS);
       }
+
       await sl.get<SharedPrefsUtil>().setFirstLaunch();
       // See if logged in already
       bool isLoggedIn = false;
@@ -610,7 +620,8 @@ class SplashState extends State<Splash> with WidgetsBindingObserver {
             await sl.get<SharedPrefsUtil>().shouldLock()) {
           Navigator.of(context).pushReplacementNamed('/lock_screen');
         } else {
-          await BitcoinUtil().loginAccount(seed, context);
+          bool is_segwit = await StateContainer.of(context).isSegwit();
+          await BitcoinUtil().loginAccount(seed, is_segwit, context);
           PriceConversion conversion = await sl.get<SharedPrefsUtil>().getPriceConversion();
           Navigator.of(context).pushReplacementNamed('/home', arguments: conversion);
         }

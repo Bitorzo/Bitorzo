@@ -24,6 +24,8 @@ import 'package:bitorzo_wallet_flutter/util/caseconverter.dart';
 import 'package:bitorzo_wallet_flutter/util/bitcoinutil.dart';
 import 'package:logger/logger.dart';
 
+
+/* TODO : convert to BTC
 class AppTransferOverviewSheet {
   static const int NUM_SWEEP = 15; // Number of accounts to sweep from a seed
 
@@ -282,14 +284,14 @@ class AppTransferOverviewSheet {
   }
 
   /// Get NUM_SWEEP accounts from seed to request balances for
-  Future<List<String>> getAccountsFromSeed(BuildContext context, String seed) async {
+  Future<List<String>> getAccountsFromSeed(BuildContext context, String seed, bool is_segwit) async {
     List<String> accountsToRequest = List();
     String privKey;
     String address;
     // Get NUM_SWEEP private keys + accounts from seed
     for (int i = 0; i < NUM_SWEEP; i++) {
-      privKey = BitcoinUtil.seedToPrivate(seed, i);
-      address = BitcoinUtil.seedToAddress(seed, i);
+      privKey = BitcoinUtil.seedToPrivate(seed, i, is_segwit);
+      address = BitcoinUtil.seedToAddress(seed, i, is_segwit);
       // Don't add this if it is the currently logged in account
       if (address != StateContainer.of(context).wallet.address) {
         privKeyBalanceMap.putIfAbsent(
@@ -298,7 +300,7 @@ class AppTransferOverviewSheet {
       }
     }
     // Also treat this seed as a private key
-    address = BitcoinKeys.seedToPublicKey(seed);
+    address = BitcoinKeys.seedToPublicKey(seed,is_segwit);
     //address = NanoAccounts.createAccount(
     //    NanoAccountType.NANO, NanoKeys.createPublicKey(seed));
     if (address != StateContainer.of(context).wallet.address) {
@@ -309,3 +311,4 @@ class AppTransferOverviewSheet {
     return accountsToRequest;
   }
 }
+*/

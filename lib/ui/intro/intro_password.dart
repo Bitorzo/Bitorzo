@@ -284,7 +284,8 @@ class _IntroPasswordState extends State<IntroPassword> {
       await sl.get<Vault>().setSeed(encryptedSeed);
       StateContainer.of(context).setEncryptedSecret(NanoHelpers.byteToHex(NanoCrypt.encrypt(widget.seed, await sl.get<Vault>().getSessionKey())));
       await sl.get<DBHelper>().dropAccounts();
-      await BitcoinUtil().loginAccount(widget.seed, context);
+      bool is_segwit = await StateContainer.of(context).isSegwit();
+      await BitcoinUtil().loginAccount(widget.seed,is_segwit, context);
       StateContainer.of(context).requestUpdate();
       String pin = await Navigator.of(context).push(
         MaterialPageRoute(builder: (BuildContext context) {
@@ -302,7 +303,9 @@ class _IntroPasswordState extends State<IntroPassword> {
       // Also encrypt it with the session key, so user doesnt need password to sign blocks within the app
       StateContainer.of(context).setEncryptedSecret(NanoHelpers.byteToHex(NanoCrypt.encrypt(seed, await sl.get<Vault>().getSessionKey())));
       // Update wallet
-      BitcoinUtil().loginAccount(await StateContainer.of(context).getSeed(), context).then((_) {
+
+      bool is_segwit = await StateContainer.of(context).isSegwit();
+      BitcoinUtil().loginAccount(await StateContainer.of(context).getSeed(),is_segwit, context).then((_) {
         StateContainer.of(context).requestUpdate();
         Navigator.of(context)
             .pushNamed('/intro_backup_safety');

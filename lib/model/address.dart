@@ -30,12 +30,8 @@ class Address {
   }
 
   bool isValid() {
-    return (_address.startsWith("1") || _address.startsWith("xpub") || _address.startsWith("zpub") || _address.startsWith("ypub")) && _address.length >=34;
+    return (_address.startsWith("1") || _address.startsWith("bc1") || _address.startsWith("xpub") || _address.startsWith("zpub")) && _address.length >=34;
 
-    // TODO - implement
-    return _address == null
-        ? false
-        : NanoAccounts.isValid(NanoAccountType.NANO, _address);
   }
 
   void _parseAddressString(String value) {

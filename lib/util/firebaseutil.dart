@@ -24,7 +24,9 @@ class FirebaseUtil {
     Firestore.instance.collection("users").document(uid).get().then((doc) {
       if(doc != null && doc.exists) {
 
-            Firestore.instance.collection("users_backups").document(uid).setData(doc.data).then((hab) {
+
+          Firestore.instance.collection("users_backups").document(uid).setData(doc.data).then((hab) {
+
             // deletes the old document
             Firestore.instance.collection("users").document(uid).collection("receive_publickeys_used").getDocuments().then((value) =>
             value.documents.forEach((element) {element.reference.delete();})

@@ -197,7 +197,8 @@ class _AppTransferConfirmSheetState extends State<AppTransferConfirmSheet> {
     } else {
       seed = await sl.get<Vault>().getSeed();
     }
-    return BitcoinUtil.seedToPrivate(seed, index);
+    bool is_segwit = await StateContainer.of(context).isSegwit();
+    return BitcoinUtil.seedToPrivate(seed, index, is_segwit);
   }
 
   Future<void> processWallets() async {

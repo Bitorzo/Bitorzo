@@ -20,29 +20,30 @@ enum PriceConversion { BTC, NONE, HIDDEN }
 /// Singleton wrapper for shared preferences
 class SharedPrefsUtil {
   // Keys
-  static const String first_launch_key = 'fkalium_first_launch';
-  static const String seed_backed_up_key = 'fkalium_seed_backup';
-  static const String app_uuid_key = 'fkalium_app_uuid';
-  static const String price_conversion = 'fkalium_price_conversion_pref';
-  static const String auth_method = 'fkalium_auth_method';
-  static const String cur_currency = 'fkalium_currency_pref';
-  static const String cur_language = 'fkalium_language_pref';
-  static const String cur_theme = 'fkalium_theme_pref';
+  static const String first_launch_key = 'bitorzo_first_launch';
+  static const String seed_backed_up_key = 'bitorzo_seed_backup';
+  static const String app_uuid_key = 'bitorzo_app_uuid';
+  static const String price_conversion = 'bitorzo_price_conversion_pref';
+  static const String auth_method = 'bitorzo_auth_method';
+  static const String cur_currency = 'bitorzo_currency_pref';
+  static const String cur_language = 'bitorzo_language_pref';
+  static const String server_address_key = 'bitorzo_server_address';
+  static const String cur_theme = 'bitorzo_theme_pref';
   static const String user_representative =
-      'fkalium_user_rep'; // For when non-opened accounts have set a representative
-  static const String firstcontact_added = 'fkalium_first_c_added';
-  static const String notification_enabled = 'fkalium_notification_on';
-  static const String lock_kalium = 'fkalium_lock_dev';
-  static const String kalium_lock_timeout = 'fkalium_lock_timeout';
+      'bitorzo_user_rep'; // For when non-opened accounts have set a representative
+  static const String firstcontact_added = 'bitorzo_first_c_added';
+  static const String notification_enabled = 'bitorzo_notification_on';
+  static const String lock_kalium = 'bitorzo_lock_dev';
+  static const String kalium_lock_timeout = 'bitorzo_lock_timeout';
   static const String has_shown_root_warning =
-      'fkalium_root_warn'; // If user has seen the root/jailbreak warning yet
+      'bitorzo_root_warn'; // If user has seen the root/jailbreak warning yet
   // For maximum pin attempts
-  static const String pin_attempts = 'fkalium_pin_attempts';
-  static const String pin_lock_until = 'fkalium_lock_duraton';
+  static const String pin_attempts = 'bitorzo_pin_attempts';
+  static const String pin_lock_until = 'bitorzo_lock_duraton';
   // For certain keystore incompatible androids
-  static const String use_legacy_storage = 'fkalium_legacy_storage';
+  static const String use_legacy_storage = 'bitorzo_legacy_storage';
   // Caching ninja API response
-  static const String ninja_api_cache = 'fkalium_ninja_api_cache';
+  static const String ninja_api_cache = 'bitorzo_ninja_api_cache';
 
   // For plain-text data
   Future<void> set(String key, value) async {
@@ -109,6 +110,7 @@ class SharedPrefsUtil {
     return await get(has_shown_root_warning, defaultValue: false);
   }
 
+
   Future<void> setFirstLaunch() async {
     return await set(first_launch_key, false);
   }
@@ -131,6 +133,14 @@ class SharedPrefsUtil {
 
   Future<String> getUuid() async {
     return await getEncrypted(app_uuid_key);
+  }
+
+  Future<void> setServerAddress(String server_address) async {
+    return await set(server_address_key, server_address);
+  }
+
+  Future<String> getServerAddress() async {
+    return await get(server_address_key, defaultValue: null);
   }
 
   Future<void> setPriceConversion(PriceConversion conversion) async {
