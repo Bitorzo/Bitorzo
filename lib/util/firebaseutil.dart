@@ -10,7 +10,6 @@ import 'package:logger/logger.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:bitorzo_wallet_flutter/data_models/country.dart';
 import 'package:path/path.dart';
-import 'package:sqflite/sqflite.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter/services.dart';
 
@@ -192,20 +191,27 @@ class FirebaseUtil {
 
    */
 
-  static Future<void> markContactPublicAddressAsUsed(String contactPhoneNumber, String unused_publickey) async {
+  static Future<void> markContactPublicAddressAsUsed(String uid, String unused_publickey) async {
 
+    /*
     String uid = await getUidByPhoneFromLookup(contactPhoneNumber);
     if(uid == null) {
       return;
     }
+    */
 
     var _Firestore = Firestore.instance;
     CollectionReference _localRecAddrRef = _Firestore.collection("users").document(uid).collection("receive_publickeys_unused");
     // Remove from used
-    await _localRecAddrRef.document(unused_publickey).delete();
-    // Move to unused
+
+    await Firestore.instance.runTransaction((Transaction myTransaction) async {
+      await myTransaction.delete(_localRecAddrRef.document(unused_publickey));
+    });
+
+    //await _localRecAddrRef.document(unused_publickey).delete();
+    // Move to used
     _localRecAddrRef = _Firestore.collection("users").document(
-        contactPhoneNumber).collection("receive_publickeys_used");
+        uid).collection("receive_publickeys_used");
 
     await _localRecAddrRef.document(unused_publickey).setData({"hab": true});
 
@@ -303,7 +309,6 @@ class FirebaseUtil {
       for (var c in _countriesJson) {
         country = Country.fromJson(c);
         if (local_phone_number.startsWith(country.dialCode)) {
-          //print("Dial code found ${country.dialCode}");
           break;
         }
       }
@@ -332,7 +337,14 @@ class FirebaseUtil {
 
     var _Firestore = Firestore.instance;
 
+
     var _localRecAddrRef = _Firestore.collection("lookup_by_phone").document(phone);
+
+    if((await _localRecAddrRef.get()).exists) {
+      // Mapping already exists (can't update by rule)
+      return;
+    }
+
     _localRecAddrRef.setData({'uid' : uid});
 
     _localRecAddrRef = _Firestore.collection("lookup_by_phone").document(phone).collection("uids").document(uid);

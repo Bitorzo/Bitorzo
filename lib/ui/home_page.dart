@@ -238,7 +238,7 @@ class _AppHomePageState extends State<AppHomePage>
     // Register push notifications
     _firebaseMessaging.configure(
       onMessage: (Map<String, dynamic> message) async {
-        //print("onMessage: $message");
+        
       },
       onLaunch: (Map<String, dynamic> message) async {
         if (message.containsKey('data')) {
@@ -330,16 +330,10 @@ class _AppHomePageState extends State<AppHomePage>
         .address;
   }
 
-  /* DEPRECATED
-  Future<void> _setMyPhoneNumber(var context) async {
-    print("Setting Phone Number!!");
-    this._myPhoneNumber = await sl.get<DBHelper>().getMyNumber();
-  }
-  */
 
-  Future<void> _getUnusedPublicAddressAndPaintQR(var context) async {
+  Future<void> _getUnusedPublicAddressAndPaintQR(var context, bool markUsed) async {
 
-      FirebaseUtil.getLocalUnusedPublicAddress(markUsed: false).then((value) {
+      FirebaseUtil.getLocalUnusedPublicAddress(markUsed: markUsed).then((value) {
           setState(() {
             receive_address_for_qr = value;
             paintQrCode(address: receive_address_for_qr);
@@ -351,6 +345,7 @@ class _AppHomePageState extends State<AppHomePage>
   Future<void> _updatePublicKeys(var context) async {
 
     bool is_segwit = await StateContainer.of(context).isSegwit();
+  
 
     String seed = await StateContainer.of(context).getSeed();
     bip32.BIP32 wallet = bip32.BIP32.fromSeed(HEX.decode(seed));
@@ -424,7 +419,7 @@ class _AppHomePageState extends State<AppHomePage>
 
     await FirebaseUtil.addUserChangePublicKeys(derived_change_keys);
 
-    _getUnusedPublicAddressAndPaintQR(context);
+    _getUnusedPublicAddressAndPaintQR(context, false);
   }
 
 
@@ -1308,28 +1303,6 @@ class _AppHomePageState extends State<AppHomePage>
 
 
 
-
-
-    //showDialog(context: context, builder: (context) => ConfirmReceiveDialog());
-    // Create QR ahead of time because it improves performance this way
-    /*
-    if(receive_address_for_qr != "") {
-      print(receive_address_for_qr);
-      paintQrCode(address: receive_address_for_qr);
-    }
-
-     */
-    /*
-
-    if(!_pubkeys_created) {
-      _updatePublicKeys().then((_) {
-        setState(() {
-          _pubkeys_created = true;
-        });
-      });
-    }
-*/
-
     return AppScaffold(
 
       resizeToAvoidBottomPadding: false,
@@ -1579,10 +1552,11 @@ class _AppHomePageState extends State<AppHomePage>
                           ),
                           onPressed: () {
 
-
-
-                            Sheets.showAppHeightEightSheet(
+                            _getUnusedPublicAddressAndPaintQR(context, true).then((_)
+                                {
+                                Sheets.showAppHeightEightSheet(
                                 context: context, widget: receive);
+                                });
                           },
                           highlightColor: receive != null
                               ? StateContainer
@@ -2898,7 +2872,7 @@ class _AppHomePageState extends State<AppHomePage>
           .wallet
           .address][index - num_unconfirmed];
     } else {
-      //print("Index ${index} is null");
+      
       return null;
     }
   }
