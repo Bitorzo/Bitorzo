@@ -42,7 +42,7 @@ import 'firebase/auth/phone_auth/get_phone.dart';
 import 'model/db/appdb.dart';
 import 'package:bitorzo_wallet_flutter/util/firebaseutil.dart';
 
-const String _DEFAULT_SERVER_ADDRESS = "bitorzo.ddns.net";
+const String _DEFAULT_SERVER_ADDRESS = "pay.bitorzo.io";
 
 class FireApp extends StatelessWidget {
     @override 
@@ -104,7 +104,6 @@ class _AppState extends State<App> {
 
         // Supports only phone auth right now (provider data), should be changed to support more approahecs
         if (snapshot.hasData && snapshot.data.phoneNumber != null) {
-          //print("${snapshot.data?.phoneNumber} ${snapshot.data?.uid} ${snapshot.data?.providerData?.length}");
           if (snapshot.data?.providerData?.length == 2) {
             // Phone authentication
             FirebaseUtil.addUidPhonePairToLookupTable();

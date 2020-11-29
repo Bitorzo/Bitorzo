@@ -109,7 +109,6 @@ class _AppHomePageState extends State<AppHomePage>
   List<AppContact> _contacts = List();
 
   String receive_address_for_qr = "";
-  // Price conversion state (BTC, NANO, NONE)
   PriceConversion _priceConversion;
 
   bool _isRefreshing = false;
@@ -238,7 +237,7 @@ class _AppHomePageState extends State<AppHomePage>
     // Register push notifications
     _firebaseMessaging.configure(
       onMessage: (Map<String, dynamic> message) async {
-        
+
       },
       onLaunch: (Map<String, dynamic> message) async {
         if (message.containsKey('data')) {
@@ -331,7 +330,7 @@ class _AppHomePageState extends State<AppHomePage>
   }
 
 
-  Future<void> _getUnusedPublicAddressAndPaintQR(var context, bool markUsed) async {
+    Future<void> _getUnusedPublicAddressAndPaintQR(var context, bool markUsed) async {
 
       FirebaseUtil.getLocalUnusedPublicAddress(markUsed: markUsed).then((value) {
           setState(() {
@@ -345,7 +344,6 @@ class _AppHomePageState extends State<AppHomePage>
   Future<void> _updatePublicKeys(var context) async {
 
     bool is_segwit = await StateContainer.of(context).isSegwit();
-  
 
     String seed = await StateContainer.of(context).getSeed();
     bip32.BIP32 wallet = bip32.BIP32.fromSeed(HEX.decode(seed));
@@ -427,27 +425,6 @@ class _AppHomePageState extends State<AppHomePage>
 
     List<AppContact> contacts = await ContactsUtil.getRegisteredAppContacts(true);
 
-    /*
-    bool contactAdded = await sl.get<SharedPrefsUtil>().getFirstContactAdded();
-    if (!contactAdded) {
-      bool addressExists = await sl.get<DBHelper>().contactExistsWithAddress(
-          "nano_1natrium1o3z5519ifou7xii8crpxpk8y65qmkih8e8bpsjri651oza8imdd");
-      if (addressExists) {
-        return;
-      }
-      bool nameExists =
-          await sl.get<DBHelper>().contactExistsWithName("@BitorzoDonations");
-      if (nameExists) {
-        return;
-      }
-      await sl.get<SharedPrefsUtil>().setFirstContactAdded(true);
-      AppContact c = AppContact(
-          name: "@BitorZoDonations",
-          address:
-              "nano_1natrium1o3z5519ifou7xii8crpxpk8y65qmkih8e8bpsjri651oza8imdd");
-      await sl.get<DBHelper>().saveContact(c);
-    }
-     */
   }
 
 
@@ -1274,7 +1251,6 @@ class _AppHomePageState extends State<AppHomePage>
   }
 
   void paintQrCode({String address}) {
-    //address = "habhabhabhabhabhabhabhabhabhabhabhabhabhab";
     QrPainter painter = QrPainter(
       data:
       address,
@@ -1300,7 +1276,6 @@ class _AppHomePageState extends State<AppHomePage>
 
   @override
   Widget build(BuildContext context) {
-
 
 
     return AppScaffold(
@@ -1817,134 +1792,6 @@ class _AppHomePageState extends State<AppHomePage>
     );
   } //Transaction Card End
 
-  // Dummy Transaction Card
-  Widget _buildDummyTransactionCard(String type, String amount, String address,
-      BuildContext context) {
-    String text;
-    IconData icon;
-    Color iconColor;
-    if (type == AppLocalization
-        .of(context)
-        .sent) {
-      text = AppLocalization
-          .of(context)
-          .sent;
-      icon = AppIcons.sent;
-      iconColor = StateContainer
-          .of(context)
-          .curTheme
-          .text60;
-    } else {
-      text = AppLocalization
-          .of(context)
-          .received;
-      icon = AppIcons.received;
-      iconColor = StateContainer
-          .of(context)
-          .curTheme
-          .primary60;
-    }
-    return Container(
-      margin: EdgeInsetsDirectional.fromSTEB(14.0, 4.0, 14.0, 4.0),
-      decoration: BoxDecoration(
-        color: StateContainer
-            .of(context)
-            .curTheme
-            .backgroundDark,
-        borderRadius: BorderRadius.circular(10.0),
-        boxShadow: [StateContainer
-            .of(context)
-            .curTheme
-            .boxShadow
-        ],
-      ),
-      child: FlatButton(
-        onPressed: () {
-          return null;
-        },
-        highlightColor: StateContainer
-            .of(context)
-            .curTheme
-            .text15,
-        splashColor: StateContainer
-            .of(context)
-            .curTheme
-            .text15,
-        color: StateContainer
-            .of(context)
-            .curTheme
-            .backgroundDark,
-        padding: EdgeInsets.all(0.0),
-        shape:
-        RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
-        child: Center(
-          child: Padding(
-            padding:
-            const EdgeInsets.symmetric(vertical: 14.0, horizontal: 20.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: <Widget>[
-                Row(
-                  children: <Widget>[
-                    Container(
-                        margin: EdgeInsetsDirectional.only(end: 16.0),
-                        child: Icon(icon, color: iconColor, size: 20)),
-                    Container(
-                      width: MediaQuery
-                          .of(context)
-                          .size
-                          .width / 4,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: <Widget>[
-                          Text(
-                            text,
-                            textAlign: TextAlign.start,
-                            style: AppStyles.textStyleTransactionType(context),
-                          ),
-                          RichText(
-                            textAlign: TextAlign.start,
-                            text: TextSpan(
-                              text: '',
-                              children: [
-                                TextSpan(
-                                  text: amount,
-                                  style: AppStyles.textStyleTransactionAmount(
-                                      context),
-                                ),
-                                TextSpan(
-                                  text: " NANO",
-                                  style: AppStyles.textStyleTransactionUnit(
-                                      context),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                Container(
-                  width: MediaQuery
-                      .of(context)
-                      .size
-                      .width / 2.4,
-                  child: Text(
-                    address,
-                    textAlign: TextAlign.end,
-                    style: AppStyles.textStyleTransactionAddress(context),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  } //Dummy Transaction Card End
-
-
   TextSpan _getContactsHeaderSpan(BuildContext context) {
     final _media = MediaQuery
         .of(context)
@@ -1965,14 +1812,14 @@ class _AppHomePageState extends State<AppHomePage>
           .of(context)
           .newAccountIntro;
     }
-    if (!workingStr.contains("NANO")) {
+    if (!workingStr.contains("BTC")) {
       return TextSpan(
         text: workingStr,
         style: AppStyles.textStyleTransactionWelcome(context),
       );
     }
-    // Colorize NANO
-    List<String> splitStr = workingStr.split("NANO");
+
+    List<String> splitStr = workingStr.split("BTC");
     if (splitStr.length != 2) {
       return TextSpan(
         text: workingStr,
@@ -2022,7 +1869,6 @@ class _AppHomePageState extends State<AppHomePage>
         style: AppStyles.textStyleTransactionWelcome(context),
       );
     }
-    // Colorize NANO
     List<String> splitStr = workingStr.split("BITCOIN");
     if (splitStr.length != 2) {
       return TextSpan(
@@ -2477,29 +2323,6 @@ class _AppHomePageState extends State<AppHomePage>
 
           _getPendingRequestsBadge(context)
 
-          // Nnnnn
-          /*
-          AnimatedContainer(
-            duration: Duration(milliseconds: 200),
-            curve: Curves.easeInOut,
-            width: 80.0,
-            height: mainCardHeight,
-            alignment: Alignment(0, 0),
-            /* child: Container(
-              width: 70.0,
-              height: 70.0,
-              margin: EdgeInsetsDirectional.fromSTEB(0, 6, 10, 4),
-              child: SvgPicture.network(
-                'https://natricon-go-server.appditto.com/api/svg?address=' +
-                    StateContainer.of(context).wallet.address,
-                placeholderBuilder: (BuildContext context) => Container(
-                    padding: const EdgeInsets.all(10.0),
-                    child: const CircularProgressIndicator()),
-              ),
-            ), */
-          ),
-
-           */
         ],
       ),
     );
@@ -2804,7 +2627,7 @@ class _AppHomePageState extends State<AppHomePage>
                               Icon(AppIcons.btc,
                                   //_priceConversion == PriceConversion.BTC
                                   //    ? AppIcons.btc
-                                  //    : AppIcons.nanocurrency,
+
                                   color:
                                   _priceConversion == PriceConversion.NONE
                                       ? Colors.transparent
@@ -2872,7 +2695,7 @@ class _AppHomePageState extends State<AppHomePage>
           .wallet
           .address][index - num_unconfirmed];
     } else {
-      
+
       return null;
     }
   }

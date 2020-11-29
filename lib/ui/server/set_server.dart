@@ -213,7 +213,7 @@ class _SetServerSheetState extends State<SetServerSheet> {
                           AppButtonType.PRIMARY_OUTLINE,
                           AppLocalization.of(context).restoreDefaultServerButton,
                           Dimens.BUTTON_TOP_EXCEPTION_DIMENS, onPressed: () async {
-                        _addressController.text = "bitorzo.ddns.net";
+                        _addressController.text = "pay.bitorzo.io";
                       }),
                     ],
                   ),

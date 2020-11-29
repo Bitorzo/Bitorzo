@@ -41,9 +41,9 @@ import 'package:bitorzo_wallet_flutter/bus/events.dart';
 import 'model/request/account_unconfirmed_request.dart';
 
 // Server Connection String
-// Important TODO : support https and wss
-const String _SERVER_ADDRESS_WEBSOCKET_FORMAT = "ws://{}:9091/";
-const String _SERVER_ADDRESS_HTTP_FORMAT = "http://{}:9090/";
+
+const String _SERVER_ADDRESS_WEBSOCKET_FORMAT = "wss://{}:9095/";
+const String _SERVER_ADDRESS_HTTP_FORMAT = "https://{}:9094/";
 
 Map decodeJson(dynamic src) {
   return json.decode(src);
@@ -178,6 +178,7 @@ class AccountService {
         reset = true; // Re-establish connection
       }
     } catch (e) {
+      log.d(e);
       reset = true;
     } finally {
       if (reset) {
@@ -193,6 +194,7 @@ class AccountService {
   }
 
   Future<void> _onMessageReceived(dynamic message) async {
+
     if (suspended) {
       return;
     }
@@ -255,7 +257,7 @@ class AccountService {
             return;
           }
           requestItem.isProcessing = true;
-          String requestJson = await compute(encodeRequestItem, requestItem.request);
+          String requestJson = (await compute(encodeRequestItem, requestItem.request));
           log.d("Sending: $requestJson");
           await _send(requestJson);
         } else if (requestItem != null && (DateTime
@@ -454,6 +456,7 @@ class AccountService {
       account: account,
       count: count
     );
+
     dynamic response = await makeHttpRequest(request);
     if (response is ErrorResponse) {
       throw Exception("Received error ${response.error}");
@@ -469,7 +472,7 @@ class AccountService {
       accounts: accounts
     );
     dynamic response = await makeHttpRequest(request);
-    print(response);
+
     if (response is ErrorResponse) {
       throw Exception("Received error ${response.error}");
     }
