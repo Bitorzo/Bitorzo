@@ -43,6 +43,7 @@ import 'model/db/appdb.dart';
 import 'package:bitorzo_wallet_flutter/util/firebaseutil.dart';
 
 const String _DEFAULT_SERVER_ADDRESS = "pay.bitorzo.io";
+const String _OLD_SERVER_ADDRESS = "bitorzo.ddns.net";
 
 class FireApp extends StatelessWidget {
     @override 
@@ -108,6 +109,14 @@ class _AppState extends State<App> {
             // Phone authentication
             FirebaseUtil.addUidPhonePairToLookupTable();
           }
+
+          // override old server address for backward compatability with SSL feature
+
+          sl.get<SharedPrefsUtil>().getServerAddress().then((value) { if (value == _OLD_SERVER_ADDRESS || value == null) {
+            sl.get<SharedPrefsUtil>().setServerAddress(_DEFAULT_SERVER_ADDRESS);
+          }});
+
+
           return OKToast(
             textStyle: AppStyles.textStyleSnackbar(context),
             backgroundColor: StateContainer.of(context).curTheme.backgroundDark,

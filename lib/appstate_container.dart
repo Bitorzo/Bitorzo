@@ -20,8 +20,6 @@ import 'package:bitorzo_wallet_flutter/model/address.dart';
 import 'package:bitorzo_wallet_flutter/model/vault.dart';
 import 'package:bitorzo_wallet_flutter/model/db/appdb.dart';
 import 'package:bitorzo_wallet_flutter/model/db/account.dart';
-import 'package:bitorzo_wallet_flutter/util/ninja/api.dart';
-import 'package:bitorzo_wallet_flutter/util/ninja/ninja_node.dart';
 import 'package:bitorzo_wallet_flutter/network/model/block_types.dart';
 import 'package:bitorzo_wallet_flutter/network/model/request/account_history_request.dart';
 import 'package:bitorzo_wallet_flutter/network/model/request/utxos_for_tx_request.dart';
@@ -120,16 +118,10 @@ class StateContainerState extends State<StateContainer> {
 
   // List of Verified BTC Ninja Nodes
   bool nanoNinjaUpdated = false;
-  List<NinjaNode> nanoNinjaNodes;
 
   // When wallet is encrypted
   String encryptedSecret;
 
-  void updateNinjaNodes(List<NinjaNode> list) {
-    setState(() {
-      nanoNinjaNodes = list;
-    });
-  }
 
   @override
   void initState() {
@@ -180,7 +172,6 @@ class StateContainerState extends State<StateContainer> {
     _priceEventSub = EventTaxiImpl.singleton().registerTo<PriceEvent>().listen((event) {
       // PriceResponse's get pushed periodically, it wasn't a request we made so don't pop the queue
 
-      sl.get<Logger>().d("Ok Damn that works");
       setState(() {
         wallet.btcPrice = event.response.btcPrice.toString();
         wallet.localCurrencyPrice = event.response.price.toString();
@@ -531,15 +522,15 @@ class StateContainerState extends State<StateContainer> {
     AccountsBalancesResponse resp = await sl.get<AccountService>().requestAccountsBalances(addressToRequest);
     print(resp);
     sl.get<DBHelper>().getAccounts(await getSeed(), await isSegwit()).then((accounts) {
-      //log.d("1");
+
       accounts.forEach((account) {
-        //log.d("2");
+
         resp.balances.forEach((address, balance) {
-          //log.d("3");
+
           String combinedBalance = (BigInt.tryParse(balance.balance) + BigInt.tryParse(balance.pending)).toString();
-          //log.d("address ${address}, account address ${account.address} combined ${combinedBalance} balance ${account.balance}");
+
           if (address == account.address && combinedBalance != account.balance) {
-            //log.d("account - ${account} combined balanace - ${combinedBalance}");
+
             sl.get<DBHelper>().updateAccountBalance(account, combinedBalance);
           }
         });
