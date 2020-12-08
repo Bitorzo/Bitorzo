@@ -1,6 +1,5 @@
 ## Bitorzo Bitcoin Wallet
 
-![alt text](src.png)
 
 Store & use Bitcoin in a simple and secure way. Beginners and advanced users friendly! Bitorzo is secure-by design  and implementation, allowing users to be in full control of their funds. Exchange Bitcoin with your contacts       anywhere, anytime!
 
@@ -30,7 +29,7 @@ Android: [Get Bitorzo Wallet](https://play.google.com/store/apps/details?id=com.
 
 ### Support or Contact
 
-         info@Bitorzo.com 
+         info@bitorzo.com 
          Phone: (+1) 718 705 4928 
 
 Bitorzo is released under the MIT License [documentation](https://github.com/Bitorzo) or [contact support](https://github.com/contact) and we’ll help you sort it out.
