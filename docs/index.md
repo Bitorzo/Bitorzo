@@ -1,11 +1,14 @@
 ## Bitorzo Bitcoin Wallet
 
+![alt text](src.png)
+
 Store & use Bitcoin in a simple and secure way. Beginners and advanced users friendly! Bitorzo is secure-by design  and implementation, allowing users to be in full control of their funds. Exchange Bitcoin with your contacts       anywhere, anytime!
 
 
 
 
 ### Download:
+
 
 Get Free Bitorzo Bitcoin Wallet 
 Android: [Get Bitorzo Wallet](https://play.google.com/store/apps/details?id=com.bitorzo.wallet)
