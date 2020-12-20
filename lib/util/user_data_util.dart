@@ -33,7 +33,7 @@ class UserDataUtil {
   static String _parseData(String data, DataType type) {
     data = data.trim();
     if (type == DataType.BTC_ADDRESS) {
-      return data.replaceAll("bitcoin:", "");
+      return data.replaceAll("bitcoin:", "").split("?")[0];
     } else if (type == DataType.RAW) {
       return data;
     } else if (type == DataType.URL) {
