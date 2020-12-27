@@ -18,36 +18,36 @@ class FirebaseUtil {
 
   static Future<void> deleteUserData() async {
     String uid = (await FirebaseAuth.instance.currentUser()).uid;
-    
+
     sl.get<Logger>().d(uid.toString() + " is going to be deleted!");
     Firestore.instance.collection("users").document(uid).get().then((doc) {
       if(doc != null && doc.exists) {
 
 
-          Firestore.instance.collection("users_backups").document(uid).setData(doc.data).then((hab) {
+        Firestore.instance.collection("users_backups").document(uid).setData(doc.data).then((hab) {
 
-            // deletes the old document
-            Firestore.instance.collection("users").document(uid).collection("receive_publickeys_used").getDocuments().then((value) =>
-            value.documents.forEach((element) {element.reference.delete();})
-            );
-            Firestore.instance.collection("users").document(uid).collection("receive_publickeys_unused").getDocuments().then((value) =>
-                value.documents.forEach((element) {element.reference.delete();})
-            );
-            Firestore.instance.collection("users").document(uid).collection("change_publickeys_used").getDocuments().then((value) =>
-                value.documents.forEach((element) {element.reference.delete();})
-            );
+          // deletes the old document
+          Firestore.instance.collection("users").document(uid).collection("receive_publickeys_used").getDocuments().then((value) =>
+              value.documents.forEach((element) {element.reference.delete();})
+          );
+          Firestore.instance.collection("users").document(uid).collection("receive_publickeys_unused").getDocuments().then((value) =>
+              value.documents.forEach((element) {element.reference.delete();})
+          );
+          Firestore.instance.collection("users").document(uid).collection("change_publickeys_used").getDocuments().then((value) =>
+              value.documents.forEach((element) {element.reference.delete();})
+          );
 
-            Firestore.instance.collection("users").document(uid).collection("change_publickeys_unused").getDocuments().then((value) =>
-                value.documents.forEach((element) {element.reference.delete();})
-            );
+          Firestore.instance.collection("users").document(uid).collection("change_publickeys_unused").getDocuments().then((value) =>
+              value.documents.forEach((element) {element.reference.delete();})
+          );
 
-            Firestore.instance.collection("users").document(uid).collection("pending_requests").getDocuments().then((value) =>
-                value.documents.forEach((element) {element.reference.delete();})
-            );
+          Firestore.instance.collection("users").document(uid).collection("pending_requests").getDocuments().then((value) =>
+              value.documents.forEach((element) {element.reference.delete();})
+          );
 
-            Firestore.instance.collection("users").document(uid).delete();
-            sl.get<Logger>().d(uid + " has just been deleted");
-      });
+          Firestore.instance.collection("users").document(uid).delete();
+          sl.get<Logger>().d(uid + " has just been deleted");
+        });
       }
     });
   }
@@ -116,8 +116,8 @@ class FirebaseUtil {
 
     if(confirmed) {
       Firestore.instance.collection('users')
-        .document(uid)
-        .collection('confirmed_requests')
+          .document(uid)
+          .collection('confirmed_requests')
           .document(reqDocId).setData(pendingReqDoc.data);
     } else {
       Firestore.instance.collection('users')
@@ -215,7 +215,7 @@ class FirebaseUtil {
 
     await _localRecAddrRef.document(unused_publickey).setData({"hab": true});
 
-    }
+  }
 
   static Future<String> getLocalUnusedPublicAddress({bool markUsed : false}) async {
     String uid = (await FirebaseAuth.instance.currentUser()).uid;
@@ -410,42 +410,6 @@ class FirebaseUtil {
   {
     return null;
     // No permissions to do that, to intrusive.
-    // TODO : upon sending add pubkey to a new list in the local user collection (so he can later remember to connect an address to a person).
-
-    var _Firestore = Firestore.instance;
-    for (AppContact contact in contacts) {
-      String uid = await getUidByPhoneFromLookup(contact.phone);
-
-      if(uid == null) {
-        continue;
-      }
-
-      var _localRecAddrRef = _Firestore.collection("users").document(uid);
-
-      if (_localRecAddrRef != null) {
-        var doc = await _localRecAddrRef.collection("receive_publickeys_used").document(pubKey);
-        if((await doc.get()).exists) {
-          return contact;
-        }
-
-        doc = await _localRecAddrRef.collection("receive_publickeys_unused").document(pubKey);
-        if((await doc.get()).exists) {
-          return contact;
-        }
-
-        doc = await _localRecAddrRef.collection("change_publickeys_used").document(pubKey);
-        if((await doc.get()).exists) {
-          return contact;
-        }
-
-        doc = await _localRecAddrRef.collection("change_publickeys_unused").document(pubKey);
-        if((await doc.get()).exists) {
-          return contact;
-        }
-      }
-    }
-
-    return null;
   }
 
 }

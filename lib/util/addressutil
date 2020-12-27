@@ -1,0 +1,52 @@
+import 'dart:async';
+import 'package:bip32/bip32.dart' as bip32;
+import 'package:hex/hex.dart';
+import '../service_locator.dart';
+import 'package:logger/logger.dart';
+import 'package:path/path.dart';
+
+import 'firebaseutil.dart';
+
+class AddressUtil {
+  final Logger log = sl.get<Logger>();
+
+  static Future<String> getDerivedAddress(String seed, int account_index, int derived_contact_xpub_index, {is_segwit = true}) async {
+    bip32.BIP32 wallet = bip32.BIP32.fromSeed(HEX.decode(seed));
+    int purpose_num = is_segwit ? 84 : 44;
+
+    // Backward compatability
+    return is_segwit?
+    wallet
+        .deriveHardened(purpose_num) // Purpose: BIP44 hardened
+        .deriveHardened(0x0) // Coin Type: bitcoin
+        .deriveHardened(account_index) // account
+        .deriveHardened(derived_contact_xpub_index).neutered().toBase58()  // contact hardened xpub
+        :
+    wallet
+        .deriveHardened(account_index) // account
+        .deriveHardened(derived_contact_xpub_index).neutered().toBase58(); // contact hardened xpub
+
+
+  }
+
+
+  static Future<String> getDerivedXpub(String seed, int account_index, int derived_contact_xpub_index, {is_segwit = true}) async {
+    bip32.BIP32 wallet = bip32.BIP32.fromSeed(HEX.decode(seed));
+    int purpose_num = is_segwit ? 84 : 44;
+
+    // Backward compatability
+    return is_segwit?
+    wallet
+        .deriveHardened(purpose_num) // Purpose: BIP44 hardened
+        .deriveHardened(0x0) // Coin Type: bitcoin
+        .deriveHardened(account_index) // account
+        .deriveHardened(derived_contact_xpub_index).neutered().toBase58()  // contact hardened xpub
+        :
+    wallet
+        .deriveHardened(account_index) // account
+        .deriveHardened(derived_contact_xpub_index).neutered().toBase58(); // contact hardened xpub
+
+
+  }
+
+}

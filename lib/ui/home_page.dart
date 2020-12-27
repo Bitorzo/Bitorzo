@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:bitorzo_wallet_flutter/bus/pending_request_event.dart';
 import 'package:bitorzo_wallet_flutter/util/bitcoinutil.dart';
+import 'package:bitorzo_wallet_flutter/util/addressutil.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flare_flutter/flare.dart';
 import 'package:flare_dart/math/mat2d.dart';
@@ -181,9 +182,11 @@ class _AppHomePageState extends State<AppHomePage>
   @override
   void initState() {
     super.initState();
+
+    /*
     WidgetsBinding.instance.addPostFrameCallback((_) =>
         _updatePublicKeys(context));
-    /*
+
     WidgetsBinding.instance.addPostFrameCallback((_) =>
     _getUnusedPublicAddressAndPaintQR(context));
      */
@@ -321,105 +324,32 @@ class _AppHomePageState extends State<AppHomePage>
 
 
     return segwit?
-      P2WPKH(
+    P2WPKH(
         data: new PaymentData(pubkey: node.publicKey), network: network).data
         .address :
-      P2PKH(
+    P2PKH(
         data: new PaymentData(pubkey: node.publicKey), network: network).data
         .address;
   }
 
 
-    Future<void> _getUnusedPublicAddressAndPaintQR(var context, bool markUsed) async {
 
-      FirebaseUtil.getLocalUnusedPublicAddress(markUsed: markUsed).then((value) {
-          setState(() {
-            receive_address_for_qr = value;
-            paintQrCode(address: receive_address_for_qr);
-            });
-      });
+  Future<void> _getUnusedPublicAddressAndPaintQR(var context, bool markUsed) async {
 
-  }
-
-  Future<void> _updatePublicKeys(var context) async {
-
-    bool is_segwit = await StateContainer.of(context).isSegwit();
+    int receive_address_id = await sl.get<SharedPrefsUtil>().incrementLastUsedReceiveAddressId();
 
     String seed = await StateContainer.of(context).getSeed();
-    bip32.BIP32 wallet = bip32.BIP32.fromSeed(HEX.decode(seed));
+    bool is_segwit = await StateContainer.of(context).isSegwit();
+    int account_index = (await StateContainer.of(context).selectedAccount).index;
 
-    int unused_num = await FirebaseUtil.getNumUnusedReceivePublicKeys();
-    int used_num = await FirebaseUtil.getNumUsedReceivePublicKeys();
+    AddressUtil.getDerivedReceiveAddress(seed, account_index, receive_address_id, is_segwit:is_segwit).then((value) {
+      setState(() {
+        receive_address_for_qr = value;
+        paintQrCode(address: receive_address_for_qr);
+      });
+    });
 
-    int last_id = unused_num + used_num - 1;
-
-    int change_unused_num = await FirebaseUtil.getNumUnusedChangePublicKeys();
-    int change_used_num = await FirebaseUtil.getNumUsedChangePublicKeys();
-
-    int change_last_id = change_unused_num + change_used_num - 1;
-
-    List<String> derived_public_keys = [];
-    List<String> derived_change_keys = [];
-
-    int purpose_num = is_segwit ? 84 : 44;
-
-    for (int i = 0; i < 20 - unused_num; i++) {
-
-      final child_public_key = getAddress(
-        // Backward compatability
-        is_segwit?
-          wallet
-          .deriveHardened(purpose_num) // Purpose: BIP44 hardened
-          .deriveHardened(0x0) // Coin Type: bitcoin
-          .deriveHardened(StateContainer.of(context).selectedAccount.index) // account
-          .derive(0) // change: External chain (recieve)
-          .derive(last_id + i + 1) :
-          wallet
-          .deriveHardened(StateContainer.of(context).selectedAccount.index) // account
-          .derive(0) // change: External chain (recieve)
-          .derive(last_id + i + 1)
-
-          ,  // address_index
-          segwit:is_segwit);
-      derived_public_keys.add(child_public_key);
-    }
-
-    await FirebaseUtil.addUserRecievePublicKeys(derived_public_keys);
-
-    for (int i = 0; i < 20 - change_unused_num; i++) {
-
-      final change_public_key = getAddress(
-          is_segwit?
-          wallet
-          .deriveHardened(purpose_num)
-          .deriveHardened(0x0) // Coin Type: bitcoin
-          .deriveHardened(StateContainer
-          .of(context)
-          .selectedAccount
-          .index)
-          .derive(1) // Internal chain (change)
-          .derive(change_last_id + i + 1):
-          wallet
-            .deriveHardened(StateContainer
-            .of(context)
-            .selectedAccount
-            .index)
-            .derive(1) // Internal chain (change)
-            .derive(change_last_id + i + 1)
-          , // address_index
-      segwit:is_segwit);
-
-
-
-      derived_change_keys.add(change_public_key);
-
-    }
-
-    await FirebaseUtil.addUserChangePublicKeys(derived_change_keys);
-
-    _getUnusedPublicAddressAndPaintQR(context, false);
   }
-
 
   Future<void> _addRegisteredContacts() async {
 
@@ -468,8 +398,6 @@ class _AppHomePageState extends State<AppHomePage>
             .initialDeepLink = null;
       }
     });
-
-
 
     _unconfirmedSub = EventTaxiImpl.singleton()
         .registerTo<UnconfirmedHomeEvent>()
@@ -775,27 +703,27 @@ class _AppHomePageState extends State<AppHomePage>
       AppDialogs.showReceiveConfirmDialog(context, "CONFIRM TRANSACTION", value?.name?? last_request.data["sender"], amount_mbtc, "Confirm",
               () {
 
-        try {
-          BitcoinUtil.publishTx(last_request.data["tx_data"]);
-          FirebaseUtil.setPendingRequestStatus(last_request.documentID, confirmed : true);
-        } catch(x) {
-          log.d(x);
-        }
+            try {
+              BitcoinUtil.publishTx(last_request.data["tx_data"]);
+              FirebaseUtil.setPendingRequestStatus(last_request.documentID, confirmed : true);
+            } catch(x) {
+              log.d(x);
+            }
 
-        if(docs.length != 0)
-        {
-          _showPendingRequestsDialogs(docs);
-        }
+            if(docs.length != 0)
+            {
+              _showPendingRequestsDialogs(docs);
+            }
 
-        },
+          },
           cancelText: "Deny",
           cancelAction: () {
-        FirebaseUtil.setPendingRequestStatus(last_request.documentID, confirmed : false);
-        if(docs.length != 0)
-        {
-          _showPendingRequestsDialogs(docs);
-        }
-      }
+            FirebaseUtil.setPendingRequestStatus(last_request.documentID, confirmed : false);
+            if(docs.length != 0)
+            {
+              _showPendingRequestsDialogs(docs);
+            }
+          }
       );
     });
   }
@@ -892,69 +820,69 @@ class _AppHomePageState extends State<AppHomePage>
     return new FutureBuilder(
         future: FirebaseUtil.getPendingRequestsStream(),
         builder: (BuildContext context, AsyncSnapshot snapshot) {
-        if (snapshot.hasData) {
-          return StreamBuilder<QuerySnapshot>(
+          if (snapshot.hasData) {
+            return StreamBuilder<QuerySnapshot>(
               stream: snapshot.data,
               builder: (BuildContext context,
-              AsyncSnapshot<QuerySnapshot> snapshot) {
+                  AsyncSnapshot<QuerySnapshot> snapshot) {
 
-            //Tranactions Text End
-            if (!snapshot.hasData || snapshot.data.documents.length == 0)
-              return Container(); //Transactions Text End;
+                //Tranactions Text End
+                if (!snapshot.hasData || snapshot.data.documents.length == 0)
+                  return Container(); //Transactions Text End;
 
-            return GestureDetector(
-                onTap: () {
-                  _showPendingRequestsDialogs(snapshot.data.documents);
-                },
+                return GestureDetector(
+                    onTap: () {
+                      _showPendingRequestsDialogs(snapshot.data.documents);
+                    },
 
-                child: Container(
+                    child: Container(
+                        margin: EdgeInsetsDirectional.fromSTEB(
+                            30.0, 20.0, 26.0, 0.0),
+                        child: Row(
+                          children: <Widget>[
+                            Text(
+                              CaseChange.toUpperCase(
+                                  "You have ${snapshot.data.documents.length} pending requests",
+                                  context),
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 16.0,
+                                fontWeight: FontWeight.w900,
+                                color: StateContainer.of(context).curTheme.text,
+                              ),
+                            ),
+                          ],
+                        )
+                    )
+                );
+
+                Container(
                     margin: EdgeInsetsDirectional.fromSTEB(
                         30.0, 20.0, 26.0, 0.0),
                     child: Row(
-                      children: <Widget>[
-                        Text(
-                          CaseChange.toUpperCase(
-                              "You have ${snapshot.data.documents.length} pending requests",
-                              context),
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 16.0,
-                            fontWeight: FontWeight.w900,
-                            color: StateContainer.of(context).curTheme.text,
+                        children: <Widget>[
+                          Text(
+                            CaseChange.toUpperCase(
+                                "You have ${snapshot.data.documents.length} pending requests",
+                                context),
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 16.0,
+                              fontWeight: FontWeight.w900,
+                              color: StateContainer.of(context).curTheme.text,
+                            ),
                           ),
-                        ),
-                      ],
+                        ]
                     )
-                )
+                );
+
+                //
+
+              },
             );
-
-            Container(
-                margin: EdgeInsetsDirectional.fromSTEB(
-                    30.0, 20.0, 26.0, 0.0),
-                child: Row(
-                    children: <Widget>[
-                      Text(
-                        CaseChange.toUpperCase(
-                            "You have ${snapshot.data.documents.length} pending requests",
-                            context),
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 16.0,
-                          fontWeight: FontWeight.w900,
-                          color: StateContainer.of(context).curTheme.text,
-                        ),
-                      ),
-                    ]
-                )
-            );
-
-            //
-
-          },
-    );
-            } else {
-          return Container(); //Transactions Text End;
-        }
+          } else {
+            return Container(); //Transactions Text End;
+          }
         }
     );
 
@@ -1004,15 +932,15 @@ class _AppHomePageState extends State<AppHomePage>
           .of(context)
           .wallet
           ?.address] = ListModel<AccountHistoryResponseItem>(
-                      listKey:
-                      _listKeyMap[StateContainer
-                          .of(context)
-                          .wallet
-                          ?.address ],
-                      initialItems: StateContainer
-                          .of(context)
-                          .wallet
-                          ?.unconfirmed,
+        listKey:
+        _listKeyMap[StateContainer
+            .of(context)
+            .wallet
+            ?.address ],
+        initialItems: StateContainer
+            .of(context)
+            .wallet
+            ?.unconfirmed,
       );
     });
 
@@ -1026,16 +954,16 @@ class _AppHomePageState extends State<AppHomePage>
         key: _listKeyMap[StateContainer.of(context).wallet?.address],
         padding: EdgeInsetsDirectional.fromSTEB(0, 5.0, 0, 15.0),
         initialItemCount:
-            _historyListMap.length == 0 ? 0
+        _historyListMap.length == 0 ? 0
             :
-            (_historyListMap[StateContainer
+        (_historyListMap[StateContainer
             .of(context)
             .wallet
             ?.address]?.length ?? 0) +
             (_unconfirmedListMap[StateContainer
-            .of(context)
-            .wallet
-            ?.address]?.length ?? 0) ,
+                .of(context)
+                .wallet
+                ?.address]?.length ?? 0) ,
         itemBuilder: _buildItem1,
       ),
       onRefresh: _refresh,
@@ -1278,6 +1206,29 @@ class _AppHomePageState extends State<AppHomePage>
   Widget build(BuildContext context) {
 
 
+
+
+
+    //showDialog(context: context, builder: (context) => ConfirmReceiveDialog());
+    // Create QR ahead of time because it improves performance this way
+    /*
+    if(receive_address_for_qr != "") {
+      print(receive_address_for_qr);
+      paintQrCode(address: receive_address_for_qr);
+    }
+
+     */
+    /*
+
+    if(!_pubkeys_created) {
+      _updatePublicKeys().then((_) {
+        setState(() {
+          _pubkeys_created = true;
+        });
+      });
+    }
+*/
+
     return AppScaffold(
 
       resizeToAvoidBottomPadding: false,
@@ -1366,7 +1317,7 @@ class _AppHomePageState extends State<AppHomePage>
                       //Transactions List
 
                       Container(
-                          height: 100,
+                        height: 100,
 
                         child:Stack(
 
@@ -1374,7 +1325,7 @@ class _AppHomePageState extends State<AppHomePage>
                           children: <Widget>[
 
                             _getContactsShortcut(context),
-                           // _getListWidget(context),
+                            // _getListWidget(context),
 
                             //List Top Gradient End
                             // List Top Gradient End
@@ -1407,7 +1358,7 @@ class _AppHomePageState extends State<AppHomePage>
                              */
                           ],
                         ),
-                        ),
+                      ),
 
                       Container(
                         margin: EdgeInsetsDirectional.fromSTEB(
@@ -1441,7 +1392,7 @@ class _AppHomePageState extends State<AppHomePage>
                             _getListWidget(context),
 
                             //List Top Gradient End
-                     // List Top Gradient End
+                            // List Top Gradient End
 
                             //List Bottom Gradient
                             /*
@@ -1528,10 +1479,10 @@ class _AppHomePageState extends State<AppHomePage>
                           onPressed: () {
 
                             _getUnusedPublicAddressAndPaintQR(context, true).then((_)
-                                {
-                                Sheets.showAppHeightEightSheet(
-                                context: context, widget: receive);
-                                });
+                            {
+                              Sheets.showAppHeightEightSheet(
+                                  context: context, widget: receive);
+                            });
                           },
                           highlightColor: receive != null
                               ? StateContainer
@@ -1605,7 +1556,7 @@ class _AppHomePageState extends State<AppHomePage>
           .curTheme
           .primary60;
     }
-      return Slidable(
+    return Slidable(
       delegate: SlidableScrollDelegate(),
       actionExtentRatio: 0.35,
       movementDuration: Duration(milliseconds: 300),
@@ -2323,6 +2274,29 @@ class _AppHomePageState extends State<AppHomePage>
 
           _getPendingRequestsBadge(context)
 
+          // Nnnnn
+          /*
+          AnimatedContainer(
+            duration: Duration(milliseconds: 200),
+            curve: Curves.easeInOut,
+            width: 80.0,
+            height: mainCardHeight,
+            alignment: Alignment(0, 0),
+            /* child: Container(
+              width: 70.0,
+              height: 70.0,
+              margin: EdgeInsetsDirectional.fromSTEB(0, 6, 10, 4),
+              child: SvgPicture.network(
+                'https://natricon-go-server.appditto.com/api/svg?address=' +
+                    StateContainer.of(context).wallet.address,
+                placeholderBuilder: (BuildContext context) => Container(
+                    padding: const EdgeInsets.all(10.0),
+                    child: const CircularProgressIndicator()),
+              ),
+            ), */
+          ),
+
+           */
         ],
       ),
     );
@@ -2695,7 +2669,6 @@ class _AppHomePageState extends State<AppHomePage>
           .wallet
           .address][index - num_unconfirmed];
     } else {
-
       return null;
     }
   }
@@ -2760,7 +2733,7 @@ class _TransactionDetailsSheetState extends State<TransactionDetailsSheet> {
                             _addressCopiedTimer.cancel();
                           }
                           _addressCopiedTimer =
-                              new Timer(const Duration(milliseconds: 800), () {
+                          new Timer(const Duration(milliseconds: 800), () {
                             if (mounted) {
                               setState(() {
                                 _addressCopied = false;
@@ -2785,30 +2758,30 @@ class _TransactionDetailsSheetState extends State<TransactionDetailsSheet> {
                             // Add Contact Button
                             child: !widget.displayName.startsWith("@")
                                 ? FlatButton(
-                                    onPressed: () {
-                                      Navigator.of(context).pop();
-                                      Sheets.showAppHeightNineSheet(
-                                          context: context,
-                                          widget: AddContactSheet(
-                                              phone: widget.address));
-                                    },
-                                    splashColor: Colors.transparent,
-                                    highlightColor: Colors.transparent,
-                                    shape: RoundedRectangleBorder(
-                                        borderRadius:
-                                            BorderRadius.circular(100.0)),
-                                    padding: EdgeInsets.symmetric(
-                                        vertical: 10.0, horizontal: 10),
-                                    child: Icon(AppIcons.addcontact,
-                                        size: 35,
-                                        color: _addressCopied
-                                            ? StateContainer.of(context)
-                                                .curTheme
-                                                .successDark
-                                            : StateContainer.of(context)
-                                                .curTheme
-                                                .backgroundDark),
-                                  )
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                                Sheets.showAppHeightNineSheet(
+                                    context: context,
+                                    widget: AddContactSheet(
+                                        phone: widget.address));
+                              },
+                              splashColor: Colors.transparent,
+                              highlightColor: Colors.transparent,
+                              shape: RoundedRectangleBorder(
+                                  borderRadius:
+                                  BorderRadius.circular(100.0)),
+                              padding: EdgeInsets.symmetric(
+                                  vertical: 10.0, horizontal: 10),
+                              child: Icon(AppIcons.addcontact,
+                                  size: 35,
+                                  color: _addressCopied
+                                      ? StateContainer.of(context)
+                                      .curTheme
+                                      .successDark
+                                      : StateContainer.of(context)
+                                      .curTheme
+                                      .backgroundDark),
+                            )
                                 : SizedBox(),
                           ),
                         ),
@@ -2826,9 +2799,9 @@ class _TransactionDetailsSheetState extends State<TransactionDetailsSheet> {
                         Dimens.BUTTON_BOTTOM_DIMENS, onPressed: () {
                       Navigator.of(context).push(
                           MaterialPageRoute(builder: (BuildContext context) {
-                        return UIUtil.showBlockExplorerWebview(
-                            context, widget.hash);
-                      }));
+                            return UIUtil.showBlockExplorerWebview(
+                                context, widget.hash);
+                          }));
                     }),
                   ],
                 ),

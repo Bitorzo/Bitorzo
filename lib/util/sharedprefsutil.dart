@@ -20,30 +20,33 @@ enum PriceConversion { BTC, NONE, HIDDEN }
 /// Singleton wrapper for shared preferences
 class SharedPrefsUtil {
   // Keys
-  static const String first_launch_key = 'bitorzo_first_launch';
-  static const String seed_backed_up_key = 'bitorzo_seed_backup';
-  static const String app_uuid_key = 'bitorzo_app_uuid';
-  static const String price_conversion = 'bitorzo_price_conversion_pref';
-  static const String auth_method = 'bitorzo_auth_method';
-  static const String cur_currency = 'bitorzo_currency_pref';
-  static const String cur_language = 'bitorzo_language_pref';
-  static const String server_address_key = 'bitorzo_server_address';
-  static const String cur_theme = 'bitorzo_theme_pref';
+  static const String first_launch_key = 'fbitorzo_first_launch';
+  static const String seed_backed_up_key = 'fbitorzo_seed_backup';
+  static const String app_uuid_key = 'fbitorzo_app_uuid';
+  static const String price_conversion = 'fbitorzo_price_conversion_pref';
+  static const String auth_method = 'fbitorzo_auth_method';
+  static const String cur_currency = 'fbitorzo_currency_pref';
+  static const String cur_language = 'fbitorzo_language_pref';
+  static const String server_address_key = 'fbitorzo_server_address';
+  static const String cur_theme = 'fbitorzo_theme_pref';
   static const String user_representative =
-      'bitorzo_user_rep'; // For when non-opened accounts have set a representative
-  static const String firstcontact_added = 'bitorzo_first_c_added';
-  static const String notification_enabled = 'bitorzo_notification_on';
-  static const String lock_kalium = 'bitorzo_lock_dev';
-  static const String kalium_lock_timeout = 'bitorzo_lock_timeout';
+      'fbitorzo_user_rep'; // For when non-opened accounts have set a representative
+  static const String firstcontact_added = 'fbitorzo_first_c_added';
+  static const String notification_enabled = 'fbitorzo_notification_on';
+  static const String lock_kalium = 'fbitorzo_lock_dev';
+  static const String kalium_lock_timeout = 'fbitorzo_lock_timeout';
   static const String has_shown_root_warning =
-      'bitorzo_root_warn'; // If user has seen the root/jailbreak warning yet
+      'fbitorzo_root_warn'; // If user has seen the root/jailbreak warning yet
   // For maximum pin attempts
-  static const String pin_attempts = 'bitorzo_pin_attempts';
-  static const String pin_lock_until = 'bitorzo_lock_duraton';
+  static const String pin_attempts = 'fbitorzo_pin_attempts';
+  static const String pin_lock_until = 'fbitorzo_lock_duraton';
   // For certain keystore incompatible androids
-  static const String use_legacy_storage = 'bitorzo_legacy_storage';
+  static const String use_legacy_storage = 'fbitorzo_legacy_storage';
   // Caching ninja API response
-  static const String ninja_api_cache = 'bitorzo_ninja_api_cache';
+  static const String ninja_api_cache = 'fbitorzo_ninja_api_cache';
+
+  static const String last_used_receive_id = 'fbitorzo_last_recieve_id';
+  static const String last_used_change_id = 'fbitorzo_last_change_id';
 
   // For plain-text data
   Future<void> set(String key, value) async {
@@ -76,7 +79,7 @@ class SharedPrefsUtil {
     }
     // Encrypt and save
     Salsa20Encryptor encrypter =
-        new Salsa20Encryptor(secret.split(":")[0], secret.split(":")[1]);
+    new Salsa20Encryptor(secret.split(":")[0], secret.split(":")[1]);
     SharedPreferences prefs = await SharedPreferences.getInstance();
     prefs.setString(key, encrypter.encrypt(value));
   }
@@ -86,7 +89,7 @@ class SharedPrefsUtil {
     if (secret == null) return null;
     // Decrypt and return
     Salsa20Encryptor encrypter =
-        new Salsa20Encryptor(secret.split(":")[0], secret.split(":")[1]);
+    new Salsa20Encryptor(secret.split(":")[0], secret.split(":")[1]);
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String encrypted = prefs.get(key);
     if (encrypted == null) return null;
@@ -102,6 +105,34 @@ class SharedPrefsUtil {
     return await get(seed_backed_up_key, defaultValue: false);
   }
 
+  Future<void> setLastUsedReceiveAddressId(int receive_id) async {
+    return await set(last_used_receive_id, receive_id);
+  }
+
+  Future<int> getLastUsedReceiveAddressId() async {
+    return await get(last_used_receive_id, defaultValue: 0);
+  }
+
+  Future<int> incrementLastUsedReceiveAddressId() async {
+    int id = await getLastUsedReceiveAddressId();
+    await set(last_used_receive_id, id + 1);
+    return id;
+  }
+
+  Future<void> setLastUsedChangeAddressId(int change_id) async {
+    return await set(last_used_change_id, change_id);
+  }
+
+  Future<int> getLastUsedChangeAddressId() async {
+    return await get(last_used_change_id, defaultValue:0);
+  }
+
+  Future<int> incrementLastUsedChangeAddressId() async {
+    int id = await getLastUsedChangeAddressId();
+    await set(last_used_change_id, id + 1);
+    return id;
+  }
+
   Future<void> setHasSeenRootWarning() async {
     return await set(has_shown_root_warning, true);
   }
@@ -112,6 +143,9 @@ class SharedPrefsUtil {
 
 
   Future<void> setFirstLaunch() async {
+    // On first launch set address identifiers to 0
+    setLastUsedChangeAddressId(0);
+    setLastUsedReceiveAddressId(0);
     return await set(first_launch_key, false);
   }
 
@@ -143,13 +177,16 @@ class SharedPrefsUtil {
     return await get(server_address_key, defaultValue: null);
   }
 
+
+
+
   Future<void> setPriceConversion(PriceConversion conversion) async {
     return await set(price_conversion, conversion.index);
   }
 
   Future<PriceConversion> getPriceConversion() async {
     return PriceConversion.values[
-        await get(price_conversion, defaultValue: PriceConversion.BTC.index)];
+    await get(price_conversion, defaultValue: PriceConversion.BTC.index)];
   }
 
   Future<void> setAuthMethod(AuthenticationMethod method) async {
@@ -158,7 +195,7 @@ class SharedPrefsUtil {
 
   Future<AuthenticationMethod> getAuthMethod() async {
     return AuthenticationMethod(AuthMethod.values[
-        await get(auth_method, defaultValue: AuthMethod.BIOMETRICS.index)]);
+    await get(auth_method, defaultValue: AuthMethod.BIOMETRICS.index)]);
   }
 
   Future<void> setCurrency(AvailableCurrency currency) async {
@@ -169,7 +206,7 @@ class SharedPrefsUtil {
     return AvailableCurrency(AvailableCurrencyEnum.values[await get(
         cur_currency,
         defaultValue:
-            AvailableCurrency.getBestForLocale(deviceLocale).currency.index)]);
+        AvailableCurrency.getBestForLocale(deviceLocale).currency.index)]);
   }
 
   Future<void> setLanguage(LanguageSetting language) async {
@@ -187,7 +224,7 @@ class SharedPrefsUtil {
 
   Future<ThemeSetting> getTheme() async {
     return ThemeSetting(ThemeOptions.values[
-        await get(cur_theme, defaultValue: ThemeOptions.NATRIUM.index)]);
+    await get(cur_theme, defaultValue: ThemeOptions.NATRIUM.index)]);
   }
 
   Future<void> setRepresentative(String rep) async {

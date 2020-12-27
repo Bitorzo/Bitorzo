@@ -30,6 +30,7 @@ import 'package:bitorzo_wallet_flutter/ui/util/ui_util.dart';
 import 'package:bitorzo_wallet_flutter/ui/widgets/sheet_util.dart';
 import 'package:bitorzo_wallet_flutter/util/bitcoinutil.dart';
 import 'package:bitorzo_wallet_flutter/util/firebaseutil.dart';
+import 'package:bitorzo_wallet_flutter/util/addressutil.dart';
 import 'package:bitorzo_wallet_flutter/util/numberutil.dart';
 import 'package:bitorzo_wallet_flutter/util/sharedprefsutil.dart';
 import 'package:bitorzo_wallet_flutter/util/biometrics.dart';
@@ -66,12 +67,12 @@ class SendConfirmSheet extends StatefulWidget {
 
   SendConfirmSheet(
       {this.amountRaw,
-      this.destination,
-      this.contact,
-      this.localCurrency,
-      this.manta,
-      this.paymentRequest,
-      this.maxSend = false})
+        this.destination,
+        this.contact,
+        this.localCurrency,
+        this.manta,
+        this.paymentRequest,
+        this.maxSend = false})
       : super();
 
   _SendConfirmSheetState createState() => _SendConfirmSheetState();
@@ -84,8 +85,8 @@ class _SendConfirmSheetState extends State<SendConfirmSheet> {
   bool isMantaTransaction;
   String unusedChangeAddress;
   int calculatedFees = -1;
-  dynamic fees_json = null; 
-  
+  dynamic fees_json = null;
+
   // Depracted
   //double fastestFees = 0;
   //double hourFees = 0;
@@ -117,7 +118,7 @@ class _SendConfirmSheetState extends State<SendConfirmSheet> {
 
   void updateCalculatedFees(double new_fee) {
     calculatedFees = (new_fee * tx_vsize).toInt();
-    print("Calc fees:" + calculatedFees.toString());
+
     calculatedFeesDisplay = NumberUtil.SatoshiToMilliBTC(calculatedFees.toString());
   }
 
@@ -129,29 +130,38 @@ class _SendConfirmSheetState extends State<SendConfirmSheet> {
     this.isMantaTransaction = widget.manta != null && widget.paymentRequest != null;
     // Derive amount from raw amount
 
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      _estimateFees().then((result)
+      { setState(() {
 
-
-    Future.delayed(Duration.zero,() {
-        _estimateFees().then((result)
-        { setState(() {
-          print(result);
-          fees_json = result; 
-          //dayFees = result["144"]?.toDouble() ?? 0;
-          //hourFees = result["6"]?.toDouble() ?? 0;
-          //halfHourFees = result["3"]?.toDouble() ?? 0;
-          //fastestFees = result["1"]?.toDouble() ?? 0;
-          _fees_slider_value = 5 ;
-          updateCalculatedFees(result["1"]);
-        }); }
-        );
+        fees_json = result;
+        //dayFees = result["144"]?.toDouble() ?? 0;
+        //hourFees = result["6"]?.toDouble() ?? 0;
+        //halfHourFees = result["3"]?.toDouble() ?? 0;
+        //fastestFees = result["1"]?.toDouble() ?? 0;
+        _fees_slider_value = 5 ;
+        updateCalculatedFees(result["1"]);
+      }); }
+      );
     });
-     /*
+
+    /*
        .catchError((error,stackTrace)
    {
-     print("Couldn't calculate fees, default of 40 sat/byte");
+
    });
+
 */
-     FirebaseUtil.getUnusedChangeAddress(markUsed: false).then((result)
+
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+
+      int account_index  = StateContainer.of(context).selectedAccount.index;
+      int change_address_id = await sl.get<SharedPrefsUtil>().incrementLastUsedChangeAddressId();
+      String seed = await StateContainer.of(context).getSeed();
+      bool is_segwit = await StateContainer.of(context).isSegwit();
+
+
+      AddressUtil.getDerivedChangeAddress(seed, account_index, change_address_id, is_segwit:is_segwit).then((result)
       { setState(() {
         unusedChangeAddress = result;
       });}).catchError((error, stackTrace) {
@@ -162,8 +172,8 @@ class _SendConfirmSheetState extends State<SendConfirmSheet> {
             .of(context)
             .noChangeKeyAvailable, context);
         Navigator.of(context).pop();
+      });
     });
-
 
     // estimate tx size
 
@@ -203,7 +213,7 @@ class _SendConfirmSheetState extends State<SendConfirmSheet> {
   Widget build(BuildContext context) {
     return SafeArea(
         minimum:
-            EdgeInsets.only(bottom: MediaQuery.of(context).size.height * 0.035),
+        EdgeInsets.only(bottom: MediaQuery.of(context).size.height * 0.035),
         child: Column(
           children: <Widget>[
             // Sheet handle
@@ -237,130 +247,130 @@ class _SendConfirmSheetState extends State<SendConfirmSheet> {
                   // Container for the amount and estimated fees text
                   // Estimated fee
                   Container(
-                    margin: EdgeInsets.only(
-                        left: MediaQuery.of(context).size.width * 0.105,
-                        right: MediaQuery.of(context).size.width * 0.105),
-                    padding: EdgeInsets.symmetric(horizontal: 25, vertical: 15),
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      color:
-                      StateContainer.of(context).curTheme.backgroundDarkest,
-                      borderRadius: BorderRadius.circular(25),
-                    ),
-                    // Amount text
-                    child:
-                      Column(
-                        children: [
-                           RichText(
-                            textAlign: TextAlign.center,
-                            text: TextSpan(
-                              text: '',
-                              children: [
-                                TextSpan(
-                                  text: "$amount",
-                                  style: TextStyle(
-                                    color:
-                                    StateContainer.of(context).curTheme.primary,
-                                    fontSize: 16.0,
-                                    fontWeight: FontWeight.w700,
-                                    fontFamily: 'NunitoSans',
-                                  ),
-                                ),
-                                TextSpan(
-                                  text: " mBTC",
-                                  style: TextStyle(
-                                    color:
-                                    StateContainer.of(context).curTheme.primary,
-                                    fontSize: 16.0,
-                                    fontWeight: FontWeight.w100,
-                                    fontFamily: 'NunitoSans',
-                                  ),
-                                ),
-                                TextSpan(
-                                  text: widget.localCurrency != null
-                                      ? " (${widget.localCurrency})"
-                                      : "",
-                                  style: TextStyle(
-                                    color:
-                                    StateContainer.of(context).curTheme.primary,
-                                    fontSize: 16.0,
-                                    fontWeight: FontWeight.w700,
-                                    fontFamily: 'NunitoSans',
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                           RichText(
-                      textAlign: TextAlign.center,
-                      text: TextSpan(
-                        text: '',
-                        children: [
-                          TextSpan(
-                            text: "($calculatedFeesDisplay",
-                            style: TextStyle(
-                              color:
-                              StateContainer.of(context).curTheme.primary,
-                              fontSize: 16.0,
-                              fontWeight: FontWeight.w700,
-                              fontFamily: 'NunitoSans',
-                            ),
-                          ),
-                          TextSpan(
-                            text: "${AppLocalization
-                                .of(context)
-                                .estimatedFees})",
-                            style: TextStyle(
-                              color:
-                              StateContainer.of(context).curTheme.primary,
-                              fontSize: 16.0,
-                              fontWeight: FontWeight.w100,
-                              fontFamily: 'NunitoSans',
-                            ),
-                          ),
-                          TextSpan(
-                            text: widget.localCurrency != null
-                                ? " (${widget.localCurrency})"
-                                : "",
-                            style: TextStyle(
-                              color:
-                              StateContainer.of(context).curTheme.primary,
-                              fontSize: 16.0,
-                              fontWeight: FontWeight.w700,
-                              fontFamily: 'NunitoSans',
-                            ),
-                          ),
-                        ],
+                      margin: EdgeInsets.only(
+                          left: MediaQuery.of(context).size.width * 0.105,
+                          right: MediaQuery.of(context).size.width * 0.105),
+                      padding: EdgeInsets.symmetric(horizontal: 25, vertical: 15),
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        color:
+                        StateContainer.of(context).curTheme.backgroundDarkest,
+                        borderRadius: BorderRadius.circular(25),
                       ),
-                    ),
-                           Slider(
-                            min: tx_vsize == 0 ? 0 : 0,
-                            max: tx_vsize == 0 ? 0 : 5,
-                            label: fees_json == null ? "Loading fee info"
-                            : _fees_slider_value > 4 ?
-                            "Fastest (${fees_json["1"]?.toDouble()?.toStringAsFixed(3) ?? "unkn"} sat/vb)":
+                      // Amount text
+                      child:
+                      Column(
+                          children: [
+                            RichText(
+                              textAlign: TextAlign.center,
+                              text: TextSpan(
+                                text: '',
+                                children: [
+                                  TextSpan(
+                                    text: "$amount",
+                                    style: TextStyle(
+                                      color:
+                                      StateContainer.of(context).curTheme.primary,
+                                      fontSize: 16.0,
+                                      fontWeight: FontWeight.w700,
+                                      fontFamily: 'NunitoSans',
+                                    ),
+                                  ),
+                                  TextSpan(
+                                    text: " mBTC",
+                                    style: TextStyle(
+                                      color:
+                                      StateContainer.of(context).curTheme.primary,
+                                      fontSize: 16.0,
+                                      fontWeight: FontWeight.w100,
+                                      fontFamily: 'NunitoSans',
+                                    ),
+                                  ),
+                                  TextSpan(
+                                    text: widget.localCurrency != null
+                                        ? " (${widget.localCurrency})"
+                                        : "",
+                                    style: TextStyle(
+                                      color:
+                                      StateContainer.of(context).curTheme.primary,
+                                      fontSize: 16.0,
+                                      fontWeight: FontWeight.w700,
+                                      fontFamily: 'NunitoSans',
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            RichText(
+                              textAlign: TextAlign.center,
+                              text: TextSpan(
+                                text: '',
+                                children: [
+                                  TextSpan(
+                                    text: "($calculatedFeesDisplay",
+                                    style: TextStyle(
+                                      color:
+                                      StateContainer.of(context).curTheme.primary,
+                                      fontSize: 16.0,
+                                      fontWeight: FontWeight.w700,
+                                      fontFamily: 'NunitoSans',
+                                    ),
+                                  ),
+                                  TextSpan(
+                                    text: "${AppLocalization
+                                        .of(context)
+                                        .estimatedFees})",
+                                    style: TextStyle(
+                                      color:
+                                      StateContainer.of(context).curTheme.primary,
+                                      fontSize: 16.0,
+                                      fontWeight: FontWeight.w100,
+                                      fontFamily: 'NunitoSans',
+                                    ),
+                                  ),
+                                  TextSpan(
+                                    text: widget.localCurrency != null
+                                        ? " (${widget.localCurrency})"
+                                        : "",
+                                    style: TextStyle(
+                                      color:
+                                      StateContainer.of(context).curTheme.primary,
+                                      fontSize: 16.0,
+                                      fontWeight: FontWeight.w700,
+                                      fontFamily: 'NunitoSans',
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Slider(
+                              min: tx_vsize == 0 ? 0 : 0,
+                              max: tx_vsize == 0 ? 0 : 5,
+                              label: fees_json == null ? "Loading fee info"
+                                  : _fees_slider_value > 4 ?
+                              "Fastest (${fees_json["1"]?.toDouble()?.toStringAsFixed(3) ?? "unkn"} sat/vb)":
 
-                            _fees_slider_value < 1 ?
-                            "~Day (${fees_json["144"]?.toDouble()?.toStringAsFixed(3) ?? "unkn"} sat/vb)" :
-                            "~${(4-_fees_slider_value).ceil()*10} min (${fees_json[(4-_fees_slider_value).ceil().toString()]?.toDouble()?.toStringAsFixed(3) ?? "unkn"} sat/vb)"
-                            ,
-                            divisions: 4,
-                            value: tx_vsize == 0 ? 0 : _fees_slider_value ,
-                            onChanged: (value) {
-                              setState(() {
-                                _fees_slider_value = value;
-                                updateCalculatedFees(
-                                    _fees_slider_value > 4 ?
-                                    fees_json["1"] :
-                                    _fees_slider_value < 1 ?
-                                    fees_json["144"] :
-                                    fees_json[(4-_fees_slider_value).ceil().toString()]
+                              _fees_slider_value < 1 ?
+                              "~Day (${fees_json["144"]?.toDouble()?.toStringAsFixed(3) ?? "unkn"} sat/vb)" :
+                              "~${(4-_fees_slider_value).ceil()*10} min (${fees_json[(4-_fees_slider_value).ceil().toString()]?.toDouble()?.toStringAsFixed(3) ?? "unkn"} sat/vb)"
+                              ,
+                              divisions: 4,
+                              value: tx_vsize == 0 ? 0 : _fees_slider_value ,
+                              onChanged: (value) {
+                                setState(() {
+                                  _fees_slider_value = value;
+                                  updateCalculatedFees(
+                                      _fees_slider_value > 4 ?
+                                      fees_json["1"] :
+                                      _fees_slider_value < 1 ?
+                                      fees_json["144"] :
+                                      fees_json[(4-_fees_slider_value).ceil().toString()]
 
-                                );
-                              });
-                            },
-                          )
-                  ])
+                                  );
+                                });
+                              },
+                            )
+                          ])
                   ),
 
                   // "TO" text
@@ -378,49 +388,49 @@ class _SendConfirmSheetState extends State<SendConfirmSheet> {
                   ),
                   // Address text
                   Container(
-                      padding: EdgeInsets.symmetric(
-                          horizontal: 25.0, vertical: 15.0),
-                      margin: EdgeInsets.only(
-                          left: MediaQuery.of(context).size.width * 0.105,
-                          right: MediaQuery.of(context).size.width * 0.105),
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        color: StateContainer.of(context)
-                            .curTheme
-                            .backgroundDarkest,
-                        borderRadius: BorderRadius.circular(25),
-                      ),
-                      child:
-                          Column( children: [
+                    padding: EdgeInsets.symmetric(
+                        horizontal: 25.0, vertical: 15.0),
+                    margin: EdgeInsets.only(
+                        left: MediaQuery.of(context).size.width * 0.105,
+                        right: MediaQuery.of(context).size.width * 0.105),
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: StateContainer.of(context)
+                          .curTheme
+                          .backgroundDarkest,
+                      borderRadius: BorderRadius.circular(25),
+                    ),
+                    child:
+                    Column( children: [
                       UIUtil.threeLineAddressText(
-                              context, destinationAltered,
-                              contactName: widget.contact?.name ?? ""),
-                            Container(
-                              margin: EdgeInsets.only(top: 5.0, bottom: 0),
-                              child: widget.contact != null ?  Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: <Widget>[
-                                  Text(
-                                    CaseChange.toUpperCase(
-                                        AppLocalization.of(context).requestConfirmation, context),
-                                    style: AppStyles.textStyleButtonPrimarySmallOutline(context),
-                                    textAlign: TextAlign.center
-                                  ),
-                                  Switch(
-                                    value: requestConfirmState,
-                                    onChanged: (value) {
-                                      setState(() {
-                                        requestConfirmState = value;
-
-                                      });
-                                    },
-                                    activeTrackColor: Colors.lightGreenAccent,
-                                    activeColor: Colors.green,
-                                  ),
-                                ],
-                              ) : Container(),
+                          context, destinationAltered,
+                          contactName: widget.contact?.name ?? ""),
+                      Container(
+                        margin: EdgeInsets.only(top: 5.0, bottom: 0),
+                        child: widget.contact != null ?  Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: <Widget>[
+                            Text(
+                                CaseChange.toUpperCase(
+                                    AppLocalization.of(context).requestConfirmation, context),
+                                style: AppStyles.textStyleButtonPrimarySmallOutline(context),
+                                textAlign: TextAlign.center
                             ),
-                  ]),
+                            Switch(
+                              value: requestConfirmState,
+                              onChanged: (value) {
+                                setState(() {
+                                  requestConfirmState = value;
+
+                                });
+                              },
+                              activeTrackColor: Colors.lightGreenAccent,
+                              activeColor: Colors.green,
+                            ),
+                          ],
+                        ) : Container(),
+                      ),
+                    ]),
                   ),
 
 
@@ -451,29 +461,29 @@ class _SendConfirmSheetState extends State<SendConfirmSheet> {
                         bool hasBiometrics = await sl.get<BiometricUtil>().hasBiometrics();
                         if (authMethod.method == AuthMethod.BIOMETRICS &&
                             hasBiometrics) {
-                              try {
-                                bool authenticated = await sl
-                                                  .get<BiometricUtil>()
-                                                  .authenticateWithBiometrics(
-                                                      context,
-                                                      AppLocalization.of(context)
-                                                          .sendAmountConfirm
-                                                          .replaceAll("%1", amount));
+                          try {
+                            bool authenticated = await sl
+                                .get<BiometricUtil>()
+                                .authenticateWithBiometrics(
+                                context,
+                                AppLocalization.of(context)
+                                    .sendAmountConfirm
+                                    .replaceAll("%1", amount));
 
 
 
-                                if (authenticated) {
-                                  sl.get<HapticUtil>().fingerprintSucess();
-                                  EventTaxiImpl.singleton()
-                                            .fire(AuthenticatedEventWithFees(AUTH_EVENT_TYPE.SEND, calculatedFees));
-                                }
-                              } catch (e) {
-                                await authenticateWithPin();
-                              }
-                            } else {
-                              await authenticateWithPin();
+                            if (authenticated) {
+                              sl.get<HapticUtil>().fingerprintSucess();
+                              EventTaxiImpl.singleton()
+                                  .fire(AuthenticatedEventWithFees(AUTH_EVENT_TYPE.SEND, calculatedFees));
                             }
+                          } catch (e) {
+                            await authenticateWithPin();
                           }
+                        } else {
+                          await authenticateWithPin();
+                        }
+                      }
                       )
                     ],
                   ),
@@ -501,9 +511,7 @@ class _SendConfirmSheetState extends State<SendConfirmSheet> {
 
   Future<int> _getTxVirtualSize() async {
     Transaction tx = await buildTx(fees : 0); // dummy fees
-    print(tx.toHex());
     int tx_vsize = tx.virtualSize();  // tx.byteLength();
-    print("estimated TX ${tx_vsize} bytes long!");
     return tx_vsize;
   }
 
@@ -511,7 +519,6 @@ class _SendConfirmSheetState extends State<SendConfirmSheet> {
 
     final result = await _getTxVirtualSize();
 
-    print(result);
     tx_vsize = result;
 
     int dummy_fees = 0; // Just to create a tx and
@@ -522,7 +529,6 @@ class _SendConfirmSheetState extends State<SendConfirmSheet> {
 
     final res = await http.get(fees_estimation_json_url, headers: {"Accept": "aplication/json"});
     var fees_json = json.decode(res.body);
-    print(fees_json);
     return fees_json;
   }
 
@@ -561,9 +567,6 @@ class _SendConfirmSheetState extends State<SendConfirmSheet> {
 
     // Add all needed unspent outputs as inputs to the new bitcoin tx
 
-    //int fees = 4760; // Constant fees (TODO: change to dynamic)
-    // fees = 0 ;
-    print("fees for creation ${fees}");
 
     if(BigInt.from(int.parse(NumberUtil.MilliBTCToSatoshi(widget.amountRaw)) + fees) >= sum_UTXO_outputs) {
       if(sum_UTXO_outputs.toInt() - fees < 0) {
@@ -576,7 +579,6 @@ class _SendConfirmSheetState extends State<SendConfirmSheet> {
     } else {
       final change_after_fees = sum_UTXO_outputs - BigInt.parse(NumberUtil.MilliBTCToSatoshi(widget.amountRaw)) - BigInt.from(fees);
 
-      print("Change is ${change_after_fees}");
       witness_value = int.parse(NumberUtil.MilliBTCToSatoshi(widget.amountRaw));
       txb.addOutput(widget.destination, witness_value);
 
@@ -601,14 +603,14 @@ class _SendConfirmSheetState extends State<SendConfirmSheet> {
 
       ECPair ec = ECPair.fromPrivateKey(
         // Backward compatability
-        is_segwit ?
+          is_segwit ?
           wallet
               .deriveHardened(is_segwit ? 84 : 44) // Purpose: BIP44 hardened
               .deriveHardened(0x0) // Coin Type: bitcoin
               .deriveHardened(StateContainer.of(context).selectedAccount.index)
               .derivePath(utxo.address_path).privateKey :
-        wallet.deriveHardened(StateContainer.of(context).selectedAccount.index)
-        .derivePath(utxo.address_path).privateKey);
+          wallet.deriveHardened(StateContainer.of(context).selectedAccount.index)
+              .derivePath(utxo.address_path).privateKey);
       txb.sign(vin: vin_counter, keyPair: ec, witnessValue: int.parse(utxo.total_output_amount));
       vin_counter += 1;
     }
@@ -624,41 +626,36 @@ class _SendConfirmSheetState extends State<SendConfirmSheet> {
     _showSendingAnimation(context);
 
     try {
-      print("Buildiing TX");
-
 
       Transaction final_output = await buildTx(fees: fees);
 
       // After the creation of the tx we can mark change address as used
-
-      print(final_output.toHex());
 
       if (this.requestConfirmState && widget.contact != null) {
         // In this case do not publish to web, just to firebase
         FirebaseUtil.addPendingRequest(widget.contact.phone,
             BigInt.parse(NumberUtil.MilliBTCToSatoshi(widget.amountRaw))
                 .toInt(), final_output.toHex());
-        FirebaseUtil.markChangeAddressAsUsed(unusedChangeAddress);
+        //FirebaseUtil.markChangeAddressAsUsed(unusedChangeAddress);
       } else {
-        print(final_output.toHex());
         Response response = await BitcoinUtil.publishTx(final_output.toHex());
 
         if (response.statusCode == 200) {
 
         } else {
-          print(response.body.toString());
+
           throw new Exception(
               'Publish tx request failed with status: ${response.statusCode}.');
         }
 
-        FirebaseUtil.markChangeAddressAsUsed(unusedChangeAddress);
+        //FirebaseUtil.markChangeAddressAsUsed(unusedChangeAddress);
 
         if (widget.contact != null) {
           FirebaseUtil.markContactPublicAddressAsUsed(
               widget.contact.phone, widget.destination);
         }
 
-        print(response.body.toString());
+
       }
       // Now mark ddreeses as used
 
@@ -678,7 +675,7 @@ class _SendConfirmSheetState extends State<SendConfirmSheet> {
 
       if (widget.manta != null) {
         widget.manta.sendPayment(
-            transactionHash: resp.hash, cryptoCurrency: "NANO");        
+            transactionHash: resp.hash, cryptoCurrency: "NANO");
       }
       StateContainer.of(context).wallet.frontier = resp.hash;
       StateContainer.of(context).wallet.accountBalance += BigInt.parse(widget.amountRaw);
@@ -711,7 +708,7 @@ class _SendConfirmSheetState extends State<SendConfirmSheet> {
       if (animationOpen) {
         Navigator.of(context).pop();
       }
-      print(e);
+
       UIUtil.showSnackbar(AppLocalization.of(context).sendError, context);
       Navigator.of(context).pop();
     }
@@ -724,18 +721,18 @@ class _SendConfirmSheetState extends State<SendConfirmSheet> {
     // PIN Authentication
     String expectedPin = await sl.get<Vault>().getPin();
     bool auth = await Navigator.of(context).push(MaterialPageRoute(
-          builder: (BuildContext context) {
-        return new PinScreen(
-          PinOverlayType.ENTER_PIN,
-          expectedPin: expectedPin,
-          description: AppLocalization.of(context)
-              .sendAmountConfirmPin
-              .replaceAll("%1", amount),
-        );
-      }));
+        builder: (BuildContext context) {
+          return new PinScreen(
+            PinOverlayType.ENTER_PIN,
+            expectedPin: expectedPin,
+            description: AppLocalization.of(context)
+                .sendAmountConfirmPin
+                .replaceAll("%1", amount),
+          );
+        }));
     if (auth != null && auth) {
       await Future.delayed(Duration(milliseconds: 200));
-       EventTaxiImpl.singleton()
+      EventTaxiImpl.singleton()
           .fire(AuthenticatedEventWithFees(AUTH_EVENT_TYPE.SEND, calculatedFees));
     }
   }
