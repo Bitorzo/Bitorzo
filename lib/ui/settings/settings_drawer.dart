@@ -1253,8 +1253,8 @@ class _SettingsSheetState extends State<SettingsSheet>
                             AppLocalization.of(context).shareBitorzo,
                             AppIcons.share, onPressed: () {
                           Share.share(
-                              "Check out bitorzo - BTC Wallet for iOS and Android" +
-                                  " https://www.bitorzo.com/app");
+                              "Check out bitorzo - BTC Wallet for Android" +
+                                  " https://www.bitorzo.io");
                         }),
                         Divider(
                           height: 2,
