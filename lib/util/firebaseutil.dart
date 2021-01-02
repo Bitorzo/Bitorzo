@@ -27,19 +27,6 @@ class FirebaseUtil {
         Firestore.instance.collection("users_backups").document(uid).setData(doc.data).then((hab) {
 
           // deletes the old document
-          Firestore.instance.collection("users").document(uid).collection("receive_publickeys_used").getDocuments().then((value) =>
-              value.documents.forEach((element) {element.reference.delete();})
-          );
-          Firestore.instance.collection("users").document(uid).collection("receive_publickeys_unused").getDocuments().then((value) =>
-              value.documents.forEach((element) {element.reference.delete();})
-          );
-          Firestore.instance.collection("users").document(uid).collection("change_publickeys_used").getDocuments().then((value) =>
-              value.documents.forEach((element) {element.reference.delete();})
-          );
-
-          Firestore.instance.collection("users").document(uid).collection("change_publickeys_unused").getDocuments().then((value) =>
-              value.documents.forEach((element) {element.reference.delete();})
-          );
 
           Firestore.instance.collection("users").document(uid).collection("pending_requests").getDocuments().then((value) =>
               value.documents.forEach((element) {element.reference.delete();})
@@ -52,8 +39,7 @@ class FirebaseUtil {
     });
   }
 
-
-
+  /*
   static Future<void> addPendingRequest(String remotePhoneNumber, int amount, String tx_data) async
   {
 
@@ -70,25 +56,8 @@ class FirebaseUtil {
 
     // return (await _localRecAddrRef.getDocuments())?.documents.length ?? 0;
   }
-
-  static Future<int> getNumUsedReceivePublicKeys() async
-  {
-    String uid = (await FirebaseAuth.instance.currentUser()).uid;
-
-    var _Firestore = Firestore.instance;
-    var _localRecAddrRef = _Firestore.collection("users").document(uid).collection("receive_publickeys_used");
-    return (await _localRecAddrRef.getDocuments())?.documents.length ?? 0;
-  }
-
-  static Future<int> getNumUnusedReceivePublicKeys() async
-  {
-    String uid = (await FirebaseAuth.instance.currentUser()).uid;
-    var _Firestore = Firestore.instance;
-    var _localRecAddrRef = _Firestore.collection("users").document(
-        uid).collection("receive_publickeys_unused");
-    return (await _localRecAddrRef.getDocuments())?.documents.length ?? 0;
-  }
-
+  */
+  /*
   static Future<int> getNumPendingRequests() async
   {
     var _Firestore = Firestore.instance;
@@ -98,7 +67,7 @@ class FirebaseUtil {
         uid).collection("pending_requests");
     return (await _localRecAddrRef.getDocuments())?.documents.length ?? 0;
   }
-
+  */
   static Future<Stream<QuerySnapshot>> getPendingRequestsStream() async
   {
     String uid = (await FirebaseAuth.instance.currentUser()).uid;
@@ -132,123 +101,8 @@ class FirebaseUtil {
         .collection('pending_requests')
         .document(reqDocId).delete();
 
-
   }
 
-
-  static Future<int> getNumUnusedChangePublicKeys() async
-  {
-    String uid = (await FirebaseAuth.instance.currentUser()).uid;
-    var _Firestore = Firestore.instance;
-    var _localRecAddrRef = _Firestore.collection("users").document(
-        uid).collection("change_publickeys_unused");
-    return (await _localRecAddrRef.getDocuments())?.documents.length ?? 0;
-  }
-
-  static Future<int> getNumUsedChangePublicKeys() async
-  {
-    String uid = (await FirebaseAuth.instance.currentUser()).uid;
-    var _Firestore = Firestore.instance;
-    var _localRecAddrRef = _Firestore.collection("users").document(
-        uid).collection("change_publickeys_used");
-    return (await _localRecAddrRef.getDocuments())?.documents.length ?? 0;
-  }
-  /* Deprecated
-  static Future<int> getLastChangePublicKeyId(String localPhoneNumber) async
-  {
-    var _Firestore = Firestore.instance;
-    var _localRecAddrRef = _Firestore.collection("users").document(
-        localPhoneNumber).collection("change_publickeys");
-    var docs = await _localRecAddrRef.getDocuments();
-    int max_key_id = -1;
-
-    for (var doc in docs.documents) {
-      int id = int.parse(doc.documentID);
-      if (id > max_key_id) {
-        max_key_id = id;
-      }
-    }
-    return max_key_id;
-  }
-
-
-  static Future<int> getLastRecievePublicKeyId(String localPhoneNumber) async
-  {
-    var _Firestore = Firestore.instance;
-    var _localRecAddrRef = _Firestore.collection("users").document(
-        localPhoneNumber).collection("receive_publickeys");
-    var docs = await _localRecAddrRef.getDocuments();
-    int max_key_id = -1;
-
-    for (var doc in docs.documents) {
-      int id = int.parse(doc.documentID);
-      if (id > max_key_id) {
-        max_key_id = id;
-      }
-    }
-    return max_key_id;
-  }
-
-   */
-
-  static Future<void> markContactPublicAddressAsUsed(String uid, String unused_publickey) async {
-
-    /*
-    String uid = await getUidByPhoneFromLookup(contactPhoneNumber);
-    if(uid == null) {
-      return;
-    }
-    */
-
-    var _Firestore = Firestore.instance;
-    CollectionReference _localRecAddrRef = _Firestore.collection("users").document(uid).collection("receive_publickeys_unused");
-    // Remove from used
-
-    await Firestore.instance.runTransaction((Transaction myTransaction) async {
-      await myTransaction.delete(_localRecAddrRef.document(unused_publickey));
-    });
-
-    //await _localRecAddrRef.document(unused_publickey).delete();
-    // Move to used
-    _localRecAddrRef = _Firestore.collection("users").document(
-        uid).collection("receive_publickeys_used");
-
-    await _localRecAddrRef.document(unused_publickey).setData({"hab": true});
-
-  }
-
-  static Future<String> getLocalUnusedPublicAddress({bool markUsed : false}) async {
-    String uid = (await FirebaseAuth.instance.currentUser()).uid;
-    return getContactUnusedPublicAddressByUid(uid, markUsed:markUsed);
-  }
-
-
-  static Future<String> getContactUnusedPublicAddress(String phone, {bool markUsed : false}) async {
-    String uid = await getUidByPhoneFromLookup(phone);
-    if(uid == null) {
-      return null;
-    }
-    return getContactUnusedPublicAddressByUid(uid, markUsed:markUsed);
-  }
-
-
-  static Future<String> getContactUnusedPublicAddressByUid(String uid, {bool markUsed : false}) async {
-
-    var _Firestore = Firestore.instance;
-    CollectionReference _localRecAddrRef = _Firestore.collection("users").document(uid).collection("receive_publickeys_unused");
-    var docs = (await _localRecAddrRef.getDocuments()).documents;
-
-    if(docs.length == 0) {
-      throw("No available public key for contact!");
-    }
-    String unused_publickey = docs[0].documentID;
-
-    if (markUsed) {
-      markContactPublicAddressAsUsed(uid, unused_publickey);
-    }
-
-    return unused_publickey;
-  }
 
   static Future<bool> isContactAppUser(String contactPhoneNumber) async {
 
@@ -262,39 +116,6 @@ class FirebaseUtil {
 
     var doc = await _localRecAddrRef.get();
     return doc.exists;
-  }
-
-  static Future<void> addUserRecievePublicKeys(List<String> pks) async {
-    String uid = (await FirebaseAuth.instance.currentUser()).uid;
-    var _Firestore = Firestore.instance;
-
-    var _localRecAddrRef = _Firestore.collection("users").document(uid);
-    _localRecAddrRef.setData({'hab' : true}, merge:true);
-
-    var _localRecAddrRef1 = _localRecAddrRef.collection("receive_publickeys_unused");
-
-    pks.forEach((value) {
-      _localRecAddrRef1
-          .document(value)
-          .setData({'hab' : true});
-    });
-
-
-    /*
-
-
-    var _localRecAddrRef = _Firestore.collection("users").document(localPhoneNumber);
-    _localRecAddrRef.setData({'hab' : true});
-
-    var _localRecAddrRef1 = _localRecAddrRef.collection("receive_publickeys_unused");
-
-    pks.forEach((value) {
-      _localRecAddrRef1
-          .document(value)
-          .setData({'hab' : true});
-    });
-
-     */
   }
 
   static Future<String> getUidByPhoneFromLookup(String phoneNum) async {
@@ -350,60 +171,6 @@ class FirebaseUtil {
     _localRecAddrRef = _Firestore.collection("lookup_by_phone").document(phone).collection("uids").document(uid);
     _localRecAddrRef.setData({'uid' : uid});
 
-  }
-
-  static Future<void> addUserChangePublicKeys(
-      List<String> pks) async {
-
-    var _Firestore = Firestore.instance;
-    String uid = (await FirebaseAuth.instance.currentUser()).uid;
-
-    var _localRecAddrRef = _Firestore.collection("users").document(uid);
-    _localRecAddrRef.setData({'hab' : true}, merge:true);
-
-    var _localRecAddrRef1 = _localRecAddrRef.collection("change_publickeys_unused");
-
-    pks.forEach((value) {
-      _localRecAddrRef1
-          .document(value)
-          .setData({'hab':true});
-    });
-
-  }
-
-  static Future<void> markChangeAddressAsUsed(String unused_changekey) async {
-    var _Firestore = Firestore.instance;
-    String uid = (await FirebaseAuth.instance.currentUser()).uid;
-
-    CollectionReference _localRecAddrRef = _Firestore.collection("users").document(uid).collection("change_publickeys_unused");
-
-    // Remove from used
-    await _localRecAddrRef.document(unused_changekey).delete();
-
-    // Move to unused
-    _localRecAddrRef = _Firestore.collection("users").document(
-        uid).collection("change_publickeys_used");
-
-    await _localRecAddrRef.document(unused_changekey).setData({"hab": true});
-  }
-
-  static Future<String> getUnusedChangeAddress({bool markUsed : true}) async {
-    String uid = (await FirebaseAuth.instance.currentUser()).uid;
-    var _Firestore = Firestore.instance;
-    var _localRecAddrRef = _Firestore.collection("users").document(uid).collection("change_publickeys_unused");
-    var docs = (await _localRecAddrRef.getDocuments()).documents;
-
-    if(docs.length == 0) {
-      throw("No available change key!");
-    }
-
-    var change_key = docs[0].documentID;
-
-    if(markUsed) {
-      markChangeAddressAsUsed(change_key);
-    }
-
-    return change_key;
   }
 
   static Future<AppContact> getContactWhosAdressBelongsTo(List<AppContact> contacts, String pubKey) async

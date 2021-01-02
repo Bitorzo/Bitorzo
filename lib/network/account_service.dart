@@ -201,7 +201,7 @@ class AccountService {
     await _lock.synchronized(() async {
       _isConnected = true;
       _isConnecting = false;
-      //log.d("Received $message");
+
       Map msg = await compute(decodeJson, message);
       // Determine response type
       if (msg.containsKey("uuid") || (msg.containsKey("frontier") && msg.containsKey("representative_block")) ||
@@ -231,20 +231,20 @@ class AccountService {
   /* Send Request */
   Future<void> sendRequest(BaseRequest request) async {
     // We don't care about order or server response in these requests
-    //log.d("sending ${json.encode(request.toJson())}");
+
     _send(await compute(encodeRequestItem, request));
   }
 
   /* Enqueue Request */
   void queueRequest(BaseRequest request, {bool fromTransfer = false}) {
-    //log.d("requetest ${json.encode(request.toJson())}, q length: ${_requestQueue.length}");
+
     _requestQueue.add(new RequestItem(request, fromTransfer: fromTransfer));
   }
 
   /* Process Queue */
   Future<void> processQueue() async {
     await _lock.synchronized(() async {
-      //log.d("Request Queue length ${_requestQueue.length}");
+
       if (_requestQueue != null && _requestQueue.length > 0) {
         RequestItem requestItem = _requestQueue.first;
         if (requestItem != null && !requestItem.isProcessing) {
@@ -472,7 +472,7 @@ class AccountService {
       accounts: accounts
     );
     dynamic response = await makeHttpRequest(request);
-
+    print(response);
     if (response is ErrorResponse) {
       throw Exception("Received error ${response.error}");
     }

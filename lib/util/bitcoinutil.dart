@@ -91,10 +91,10 @@ class BitcoinUtil {
   }
 
   static Future<http.Response> publishTx(String hextx) {
-    //print(hextx);
+    print(hextx);
 
 
-    // TODO : Allow user to set his own Esplora server address (or implement that into Bitorzo Server as well).
+    // TODO : Change to ש customized Esplora server
     return http.post(
       'https://blockstream.info/api/tx',
       body: hextx);

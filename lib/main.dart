@@ -1,4 +1,4 @@
-  import 'dart:async';
+import 'dart:async';
 import 'dart:io';
 
 import 'package:firebase_auth/firebase_auth.dart';
@@ -109,13 +109,13 @@ class _AppState extends State<App> {
             // Phone authentication
             FirebaseUtil.addUidPhonePairToLookupTable();
           }
-
           // override old server address for backward compatability with SSL feature
+          // If no address server is not configured pick default
 
           sl.get<SharedPrefsUtil>().getServerAddress().then((value) { if (value == _OLD_SERVER_ADDRESS || value == null) {
-            sl.get<SharedPrefsUtil>().setServerAddress(_DEFAULT_SERVER_ADDRESS);
+              sl.get<SharedPrefsUtil>().setServerAddress(_DEFAULT_SERVER_ADDRESS);
           }});
-
+            
 
           return OKToast(
             textStyle: AppStyles.textStyleSnackbar(context),

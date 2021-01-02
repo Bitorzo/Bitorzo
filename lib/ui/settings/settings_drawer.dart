@@ -44,6 +44,7 @@ import 'package:bitorzo_wallet_flutter/util/biometrics.dart';
 import 'package:bitorzo_wallet_flutter/util/hapticutil.dart';
 import 'package:bitorzo_wallet_flutter/util/numberutil.dart';
 import 'package:bitorzo_wallet_flutter/util/caseconverter.dart';
+import 'package:bitorzo_wallet_flutter/util/ninja/api.dart';
 
 class SettingsSheet extends StatefulWidget {
   _SettingsSheetState createState() => _SettingsSheetState();
@@ -1253,7 +1254,7 @@ class _SettingsSheetState extends State<SettingsSheet>
                             AppIcons.share, onPressed: () {
                           Share.share(
                               "Check out bitorzo - BTC Wallet for iOS and Android" +
-                                  " https://bitorzo.com");
+                                  " https://www.bitorzo.com/app");
                         }),
                         Divider(
                           height: 2,

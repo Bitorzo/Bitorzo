@@ -20,6 +20,8 @@ import 'package:bitorzo_wallet_flutter/model/address.dart';
 import 'package:bitorzo_wallet_flutter/model/vault.dart';
 import 'package:bitorzo_wallet_flutter/model/db/appdb.dart';
 import 'package:bitorzo_wallet_flutter/model/db/account.dart';
+import 'package:bitorzo_wallet_flutter/util/ninja/api.dart';
+import 'package:bitorzo_wallet_flutter/util/ninja/ninja_node.dart';
 import 'package:bitorzo_wallet_flutter/network/model/block_types.dart';
 import 'package:bitorzo_wallet_flutter/network/model/request/account_history_request.dart';
 import 'package:bitorzo_wallet_flutter/network/model/request/utxos_for_tx_request.dart';
@@ -118,10 +120,16 @@ class StateContainerState extends State<StateContainer> {
 
   // List of Verified BTC Ninja Nodes
   bool nanoNinjaUpdated = false;
+  List<NinjaNode> nanoNinjaNodes;
 
   // When wallet is encrypted
   String encryptedSecret;
 
+  void updateNinjaNodes(List<NinjaNode> list) {
+    setState(() {
+      nanoNinjaNodes = list;
+    });
+  }
 
   @override
   void initState() {
@@ -175,8 +183,7 @@ class StateContainerState extends State<StateContainer> {
       setState(() {
         wallet.btcPrice = event.response.btcPrice.toString();
         wallet.localCurrencyPrice = event.response.price.toString();
-        //wallet.btcPrice = "1";
-        // wallet.localCurrencyPrice = "1";
+
       });
     });
 
@@ -510,7 +517,6 @@ class StateContainerState extends State<StateContainer> {
   /// Request balances for accounts in our database
   Future<void> _requestBalances() async {
 
-    print("Balances Req");
     List<Account> accounts = await sl.get<DBHelper>().getAccounts(await getSeed(), await isSegwit());
 
     List<String> addressToRequest = List();
@@ -544,7 +550,7 @@ class StateContainerState extends State<StateContainer> {
   }
 
   Future<void> requestUpdate({bool pending = true}) async {
-    print("Requesting update!!");
+
     if (wallet != null &&
         wallet.address != null &&
         Address(wallet.address).isValid()) {
@@ -570,7 +576,7 @@ class StateContainerState extends State<StateContainer> {
         count = 50;
       }
       try {
-        print("haboshabosasda");
+
         AccountHistoryResponse resp = await sl.get<AccountService>()
             .requestAccountHistory(wallet.address, count: count);
 

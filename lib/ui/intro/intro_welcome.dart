@@ -110,7 +110,6 @@ class _IntroWelcomePageState extends State<IntroWelcomePage> {
                             onChanged: (value) {
                               setState(() {
                                 segwitEnabled = value;
-                                print("Segwit status: ${value}");
                                 sl.get<Vault>().setSegwit(value);
                               });
                             },

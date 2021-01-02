@@ -24,6 +24,7 @@ import 'package:bitorzo_wallet_flutter/ui/util/routes.dart';
 import 'package:bitorzo_wallet_flutter/styles.dart';
 import 'package:bitorzo_wallet_flutter/app_icons.dart';
 import 'package:bitorzo_wallet_flutter/util/bitcoinutil.dart';
+import 'package:bitorzo_wallet_flutter/util/ninja/ninja_node.dart';
 import 'package:bitorzo_wallet_flutter/util/sharedprefsutil.dart';
 import 'package:bitorzo_wallet_flutter/util/biometrics.dart';
 import 'package:bitorzo_wallet_flutter/util/numberutil.dart';

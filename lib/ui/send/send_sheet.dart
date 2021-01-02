@@ -44,9 +44,9 @@ SendSheet extends StatefulWidget {
 
   SendSheet(
       {@required this.localCurrency,
-        this.contact,
-        this.address,
-        this.quickSendAmount})
+      this.contact,
+      this.address,
+      this.quickSendAmount})
       : super();
 
   _SendSheetState createState() => _SendSheetState();
@@ -182,7 +182,7 @@ class _SendSheetState extends State<SendSheet> {
     // Set quick send amount
     if (quickSendAmount != null) {
       _sendAmountController.text = "";
-      //NumberUtil.getRawAsUsableString(quickSendAmount).replaceAll(",", "");
+          //NumberUtil.getRawAsUsableString(quickSendAmount).replaceAll(",", "");
     }
   }
 
@@ -200,7 +200,7 @@ class _SendSheetState extends State<SendSheet> {
     // The main column that holds everything
     return SafeArea(
         minimum:
-        EdgeInsets.only(bottom: MediaQuery.of(context).size.height * 0.035),
+            EdgeInsets.only(bottom: MediaQuery.of(context).size.height * 0.035),
         child: Column(
           children: <Widget>[
             // A row for the header of the sheet, balance text and close button
@@ -331,9 +331,9 @@ class _SendSheetState extends State<SendSheet> {
                                                 text: "(",
                                                 style: TextStyle(
                                                   color:
-                                                  StateContainer.of(context)
-                                                      .curTheme
-                                                      .primary60,
+                                                      StateContainer.of(context)
+                                                          .curTheme
+                                                          .primary60,
                                                   fontSize: 14.0,
                                                   fontWeight: FontWeight.w100,
                                                   fontFamily: 'NunitoSans',
@@ -342,22 +342,22 @@ class _SendSheetState extends State<SendSheet> {
                                               TextSpan(
                                                 text: _localCurrencyMode
                                                     ? StateContainer.of(context)
-                                                    .wallet
-                                                    .getLocalCurrencyPrice(
-                                                    StateContainer.of(
-                                                        context)
-                                                        .curCurrency,
-                                                    locale: StateContainer
-                                                        .of(context)
-                                                        .currencyLocale)
+                                                        .wallet
+                                                        .getLocalCurrencyPrice(
+                                                            StateContainer.of(
+                                                                    context)
+                                                                .curCurrency,
+                                                            locale: StateContainer
+                                                                    .of(context)
+                                                                .currencyLocale)
                                                     : StateContainer.of(context)
-                                                    .wallet
-                                                    .getAccountBalanceDisplay(),
+                                                        .wallet
+                                                        .getAccountBalanceDisplay(),
                                                 style: TextStyle(
                                                   color:
-                                                  StateContainer.of(context)
-                                                      .curTheme
-                                                      .primary60,
+                                                      StateContainer.of(context)
+                                                          .curTheme
+                                                          .primary60,
                                                   fontSize: 14.0,
                                                   fontWeight: FontWeight.w700,
                                                   fontFamily: 'NunitoSans',
@@ -369,9 +369,9 @@ class _SendSheetState extends State<SendSheet> {
                                                     : " mBTC)",
                                                 style: TextStyle(
                                                   color:
-                                                  StateContainer.of(context)
-                                                      .curTheme
-                                                      .primary60,
+                                                      StateContainer.of(context)
+                                                          .curTheme
+                                                          .primary60,
                                                   fontSize: 14.0,
                                                   fontWeight: FontWeight.w100,
                                                   fontFamily: 'NunitoSans',
@@ -397,7 +397,7 @@ class _SendSheetState extends State<SendSheet> {
                                 ),
                                 // ******* Enter Amount Container ******* //
                                 getEnterAmountContainer(),
-
+                                
                                 // ******* Enter Amount Container End ******* //
 
                                 // ******* Enter Amount Error Container ******* //
@@ -429,12 +429,12 @@ class _SendSheetState extends State<SendSheet> {
                                       Container(
                                         margin: EdgeInsets.only(
                                             left: MediaQuery.of(context)
-                                                .size
-                                                .width *
+                                                    .size
+                                                    .width *
                                                 0.105,
                                             right: MediaQuery.of(context)
-                                                .size
-                                                .width *
+                                                    .size
+                                                    .width *
                                                 0.105),
                                         alignment: Alignment.bottomCenter,
                                         constraints: BoxConstraints(
@@ -443,11 +443,11 @@ class _SendSheetState extends State<SendSheet> {
                                         // ********* The pop-up Contacts List ********* //
                                         child: ClipRRect(
                                           borderRadius:
-                                          BorderRadius.circular(25),
+                                              BorderRadius.circular(25),
                                           child: Container(
                                             decoration: BoxDecoration(
                                               borderRadius:
-                                              BorderRadius.circular(25),
+                                                  BorderRadius.circular(25),
                                               color: StateContainer.of(context)
                                                   .curTheme
                                                   .backgroundDarkest,
@@ -455,10 +455,10 @@ class _SendSheetState extends State<SendSheet> {
                                             child: Container(
                                               decoration: BoxDecoration(
                                                 borderRadius:
-                                                BorderRadius.circular(25),
+                                                    BorderRadius.circular(25),
                                               ),
                                               margin:
-                                              EdgeInsets.only(bottom: 50),
+                                                  EdgeInsets.only(bottom: 50),
                                               child: ListView.builder(
                                                 shrinkWrap: true,
                                                 padding: EdgeInsets.only(
@@ -594,11 +594,11 @@ class _SendSheetState extends State<SendSheet> {
                               widget: SendConfirmSheet(
                                   amountRaw: _localCurrencyMode
                                       ? NumberUtil.BTCtoMilliBTC(
-                                      _convertLocalCurrencyToCrypto())
+                                          _convertLocalCurrencyToCrypto())
                                       : _rawAmount == null
-                                      ? //NumberUtil.getAmountAsRaw(
-                                  _sendAmountController.text//)
-                                      : _rawAmount,
+                                          ? //NumberUtil.getAmountAsRaw(
+                                              _sendAmountController.text//)
+                                          : _rawAmount,
                                   destination: _sendAddressController.text,
                                   maxSend: _isMaxSend(),
                                   localCurrency: _localCurrencyMode
@@ -632,7 +632,7 @@ class _SendSheetState extends State<SendSheet> {
                             // Get manta payment request
                             MantaWallet manta = MantaWallet(scanResult);
                             PaymentRequestMessage paymentRequest =
-                            await MantaUtil.getPaymentDetails(manta);
+                                await MantaUtil.getPaymentDetails(manta);
                             if (animationOpen) {
                               Navigator.of(context).pop();
                             }
@@ -707,11 +707,11 @@ class _SendSheetState extends State<SendSheet> {
                                     NumberUtil.getRawAsUsableDecimal(_rawAmount).toString()) {
                                   _sendAmountController.text = NumberUtil.getRawAsUsableString(_rawAmount).replaceAll(",", "");
                                 } else {
-                                  _sendAmountController.text =
-                                      NumberUtil.truncateDecimal(
-                                          NumberUtil.getRawAsUsableDecimal(address.amount),
-                                          digits: 6
-                                      ).toStringAsFixed(6) + "~";
+                                  _sendAmountController.text = 
+                                    NumberUtil.truncateDecimal(
+                                      NumberUtil.getRawAsUsableDecimal(address.amount),
+                                      digits: 6
+                                    ).toStringAsFixed(6) + "~";
                                 }
                               });
                               _sendAddressFocusNode.unfocus();
@@ -722,16 +722,16 @@ class _SendSheetState extends State<SendSheet> {
                                 widget: SendConfirmSheet(
                                     amountRaw: _localCurrencyMode
                                         ? NumberUtil.BTCtoMilliBTC(
-                                        _convertLocalCurrencyToCrypto())
+                                            _convertLocalCurrencyToCrypto())
                                         : _rawAmount == null
-                                        ? //NumberUtil.getAmountAsRaw(
-                                    _sendAmountController.text//)
-                                        : _rawAmount,
+                                            ? //NumberUtil.getAmountAsRaw(
+                                                _sendAmountController.text//)
+                                            : _rawAmount,
                                     destination: contact != null
                                         ? contact.address
                                         : address.address,
                                     contact:
-                                    contact != null ? contact : null,
+                                        contact != null ? contact : null,
                                     maxSend: _isMaxSend(),
                                     localCurrency: _localCurrencyMode
                                         ? _sendAmountController.text
@@ -811,18 +811,18 @@ class _SendSheetState extends State<SendSheet> {
         balance = balance.replaceAll(",", ".");
         String sanitizedBalance = NumberUtil.sanitizeNumber(balance);
         textFieldInt = (Decimal.parse(sanitizedTextField) *
-            Decimal.fromInt(pow(10, NumberUtil.maxDecimalDigits)))
+                Decimal.fromInt(pow(10, NumberUtil.maxDecimalDigits)))
             .toInt();
         balanceInt = (Decimal.parse(sanitizedBalance) *
-            Decimal.fromInt(pow(10, NumberUtil.maxDecimalDigits)))
+                Decimal.fromInt(pow(10, NumberUtil.maxDecimalDigits)))
             .toInt();
       } else {
         textField = textField.replaceAll(",", "");
         textFieldInt = (Decimal.parse(textField) *
-            Decimal.fromInt(pow(10, NumberUtil.maxDecimalDigits)))
+                Decimal.fromInt(pow(10, NumberUtil.maxDecimalDigits)))
             .toInt();
         balanceInt = (Decimal.parse(balance) *
-            Decimal.fromInt(pow(10, NumberUtil.maxDecimalDigits)))
+                Decimal.fromInt(pow(10, NumberUtil.maxDecimalDigits)))
             .toInt();
       }
       return textFieldInt == balanceInt;
@@ -924,14 +924,14 @@ class _SendSheetState extends State<SendSheet> {
       String bananoAmount = _localCurrencyMode
           ? NumberUtil.BTCToSatoshi(_convertLocalCurrencyToCrypto())
           : _rawAmount == null
-          ? NumberUtil.MilliBTCToSatoshi(_sendAmountController.text)
-          : NumberUtil.getRawAsUsableString(_rawAmount);
+              ? NumberUtil.MilliBTCToSatoshi(_sendAmountController.text)
+              : NumberUtil.getRawAsUsableString(_rawAmount);
       BigInt balanceRaw = StateContainer.of(context).wallet.accountBalance;
 
 
 
       BigInt sendAmount =
-      BigInt.tryParse(bananoAmount);
+          BigInt.tryParse(bananoAmount);
 
       if (sendAmount == null || sendAmount == BigInt.zero) {
         isValid = false;
@@ -987,19 +987,19 @@ class _SendSheetState extends State<SendSheet> {
       ),
       inputFormatters: _rawAmount == null
           ? [
-        LengthLimitingTextInputFormatter(13),
-        _localCurrencyMode
-            ? CurrencyFormatter(
-            decimalSeparator:
-            _localCurrencyFormat.symbols.DECIMAL_SEP,
-            commaSeparator: _localCurrencyFormat.symbols.GROUP_SEP,
-            maxDecimalDigits: 2)
-            : CurrencyFormatter(
-            maxDecimalDigits: NumberUtil.maxDecimalDigits),
-        LocalCurrencyFormatter(
-            active: _localCurrencyMode,
-            currencyFormat: _localCurrencyFormat)
-      ]
+              LengthLimitingTextInputFormatter(13),
+              _localCurrencyMode
+                  ? CurrencyFormatter(
+                      decimalSeparator:
+                          _localCurrencyFormat.symbols.DECIMAL_SEP,
+                      commaSeparator: _localCurrencyFormat.symbols.GROUP_SEP,
+                      maxDecimalDigits: 2)
+                  : CurrencyFormatter(
+                      maxDecimalDigits: NumberUtil.maxDecimalDigits),
+              LocalCurrencyFormatter(
+                  active: _localCurrencyMode,
+                  currencyFormat: _localCurrencyFormat)
+            ]
           : [LengthLimitingTextInputFormatter(13)],
       onChanged: (text) {
         // Always reset the error message to be less annoying
@@ -1013,14 +1013,14 @@ class _SendSheetState extends State<SendSheet> {
       maxLines: null,
       autocorrect: false,
       hintText:
-      _amountHint == null ? "" : AppLocalization.of(context).enterAmount,
+          _amountHint == null ? "" : AppLocalization.of(context).enterAmount,
       prefixButton: _rawAmount == null
           ? TextFieldButton(
-        icon: AppIcons.swapcurrency,
-        onPressed: () {
-          toggleLocalCurrency();
-        },
-      )
+              icon: AppIcons.swapcurrency,
+              onPressed: () {
+                toggleLocalCurrency();
+              },
+            )
           : null,
       suffixButton: TextFieldButton(
         icon: AppIcons.max,
@@ -1039,7 +1039,7 @@ class _SendSheetState extends State<SendSheet> {
             String localAmount = StateContainer.of(context)
                 .wallet
                 .getLocalCurrencyPrice(StateContainer.of(context).curCurrency,
-                locale: StateContainer.of(context).currencyLocale);
+                    locale: StateContainer.of(context).currencyLocale);
             localAmount = localAmount.replaceAll(
                 _localCurrencyFormat.symbols.GROUP_SEP, "");
             localAmount = localAmount.replaceAll(
@@ -1163,8 +1163,8 @@ class _SendSheetState extends State<SendSheet> {
         style: _sendAddressStyle == AddressStyle.TEXT60
             ? AppStyles.textStyleAddressText60(context)
             : _sendAddressStyle == AddressStyle.TEXT90
-            ? AppStyles.textStyleAddressText90(context)
-            : AppStyles.textStyleAddressPrimary(context),
+                ? AppStyles.textStyleAddressText90(context)
+                : AppStyles.textStyleAddressPrimary(context),
         onChanged: (text) {
           if (text.length > 0) {
             setState(() {
@@ -1228,19 +1228,19 @@ class _SendSheetState extends State<SendSheet> {
         },
         overrideTextFieldWidget: _addressValidAndUnfocused
             ? GestureDetector(
-            onTap: () {
-              setState(() {
-                _addressValidAndUnfocused = false;
-              });
-              Future.delayed(Duration(milliseconds: 50), () {
-                FocusScope.of(context).requestFocus(_sendAddressFocusNode);
-              });
-            },
-            child: UIUtil.threeLineAddressText(
-                context, _sendAddressController.text)
-        )
+                onTap: () {
+                  setState(() {
+                    _addressValidAndUnfocused = false;
+                  });
+                  Future.delayed(Duration(milliseconds: 50), () {
+                    FocusScope.of(context).requestFocus(_sendAddressFocusNode);
+                  });
+                },
+                    child: UIUtil.threeLineAddressText(
+                    context, _sendAddressController.text)
+              )
             : null);
   } //************ Enter Address Container Method End ************//
 
-//*************************************************************//
+  //*************************************************************//
 }

@@ -79,7 +79,7 @@ class SharedPrefsUtil {
     }
     // Encrypt and save
     Salsa20Encryptor encrypter =
-    new Salsa20Encryptor(secret.split(":")[0], secret.split(":")[1]);
+        new Salsa20Encryptor(secret.split(":")[0], secret.split(":")[1]);
     SharedPreferences prefs = await SharedPreferences.getInstance();
     prefs.setString(key, encrypter.encrypt(value));
   }
@@ -89,7 +89,7 @@ class SharedPrefsUtil {
     if (secret == null) return null;
     // Decrypt and return
     Salsa20Encryptor encrypter =
-    new Salsa20Encryptor(secret.split(":")[0], secret.split(":")[1]);
+        new Salsa20Encryptor(secret.split(":")[0], secret.split(":")[1]);
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String encrypted = prefs.get(key);
     if (encrypted == null) return null;
@@ -128,9 +128,9 @@ class SharedPrefsUtil {
   }
 
   Future<int> incrementLastUsedChangeAddressId() async {
-    int id = await getLastUsedChangeAddressId();
-    await set(last_used_change_id, id + 1);
-    return id;
+     int id = await getLastUsedChangeAddressId();
+     await set(last_used_change_id, id + 1);
+     return id;
   }
 
   Future<void> setHasSeenRootWarning() async {
@@ -186,7 +186,7 @@ class SharedPrefsUtil {
 
   Future<PriceConversion> getPriceConversion() async {
     return PriceConversion.values[
-    await get(price_conversion, defaultValue: PriceConversion.BTC.index)];
+        await get(price_conversion, defaultValue: PriceConversion.BTC.index)];
   }
 
   Future<void> setAuthMethod(AuthenticationMethod method) async {
@@ -195,7 +195,7 @@ class SharedPrefsUtil {
 
   Future<AuthenticationMethod> getAuthMethod() async {
     return AuthenticationMethod(AuthMethod.values[
-    await get(auth_method, defaultValue: AuthMethod.BIOMETRICS.index)]);
+        await get(auth_method, defaultValue: AuthMethod.BIOMETRICS.index)]);
   }
 
   Future<void> setCurrency(AvailableCurrency currency) async {
@@ -206,7 +206,7 @@ class SharedPrefsUtil {
     return AvailableCurrency(AvailableCurrencyEnum.values[await get(
         cur_currency,
         defaultValue:
-        AvailableCurrency.getBestForLocale(deviceLocale).currency.index)]);
+            AvailableCurrency.getBestForLocale(deviceLocale).currency.index)]);
   }
 
   Future<void> setLanguage(LanguageSetting language) async {
@@ -224,7 +224,7 @@ class SharedPrefsUtil {
 
   Future<ThemeSetting> getTheme() async {
     return ThemeSetting(ThemeOptions.values[
-    await get(cur_theme, defaultValue: ThemeOptions.NATRIUM.index)]);
+        await get(cur_theme, defaultValue: ThemeOptions.NATRIUM.index)]);
   }
 
   Future<void> setRepresentative(String rep) async {

@@ -99,7 +99,6 @@ class AppWallet {
 
 
   String getLocalCurrencyPrice(AvailableCurrency currency, {String locale = "en_US"}) {
-    // print("local currency ${_localCurrencyPrice} account_balance ${_accountBalance}");
     Decimal converted = Decimal.parse(_localCurrencyPrice) * Decimal.parse(_accountBalance.toString());
     return NumberFormat.currency(locale:locale, symbol: currency.getCurrencySymbol()).format(converted.toDouble());
   }

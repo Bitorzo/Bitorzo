@@ -7,7 +7,7 @@ description: Bitorzo - Fast, Robust & Secure BTC Wallet.
 # Both the version and the builder number may be overridden in flutter
 # build by specifying --build-name and --build-number, respectively.
 # Read more about versioning at semver.org.
-version: 3.1.1+95
+version: 3.1.2+96
 
 environment:
   sdk: ">=2.2.0 <3.0.0"
@@ -89,7 +89,7 @@ dependencies:
 
   # SVG
   flutter_svg: ^0.18.0
-
+    
   # QR Codes
   qr_flutter: ^2.0.1 # Generator
   barcode_scan:
@@ -162,8 +162,8 @@ dependencies:
 dev_dependencies:
 
   #flutter_test:
-  #sdk: flutter
-  # flutter_launcher_icons: ^0.7.3
+    #sdk: flutter
+ # flutter_launcher_icons: ^0.7.3
   build_runner: ^1.7.0
   json_serializable: ^3.2.5
   intl_translation: ^0.17.9
@@ -237,7 +237,7 @@ flutter:
     - android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png
     - assets/images/
     - data/
-
+    
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.

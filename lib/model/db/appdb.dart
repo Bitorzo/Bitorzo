@@ -311,52 +311,6 @@ class DBHelper {
         ]);
   }
 
-  /*
-  Deprecatd
-
-  Future<int> saveMyNumber(String phone) async {
-    var dbClient = await db;
-
-    return await dbClient.rawInsert(
-        'INSERT INTO MYACCOUNT (phone) values(?)',
-        [
-          phone
-        ]);
-  }
-
-
-  Future<String> getMyNumber() async {
-    print("Inside GETMYNUMBER");
-    //DEBUG
-
-    //return "0547272423";
-    var dbClient = await db;
-    List<Map> list =
-    await dbClient.rawQuery('SELECT * FROM MYACCOUNT');
-    if (list.length == 0) {
-      return null;
-    }
-
-    String phone = list[0]["phone"];
-
-    var _file = await rootBundle.loadString('data/country_phone_codes.json');
-    var _countriesJson = json.decode(_file);
-    for (var c in _countriesJson) {
-      c = Country.fromJson(c);
-      phone = phone.replaceAll("${c.dialCode}", "");
-      print(c.dialCode);
-      print("Current phone number is ${phone}");
-    }
-
-    // normalize with starting '0'
-    if(phone[0] != "0") {
-      phone = "0" + phone;
-    }
-
-    return phone;
-
-  }
-   */
 
   Future<int> changeAccountName(Account account, String name) async {
     var dbClient = await db;

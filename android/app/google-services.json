@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "822368000938",
+    "firebase_url": "https://myfirebaseauthapp-76e34.firebaseio.com",
+    "project_id": "myfirebaseauthapp-76e34",
+    "storage_bucket": "myfirebaseauthapp-76e34.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:822368000938:android:35d5f640d9c200d33f69d3",
+        "android_client_info": {
+          "package_name": "com.bitorzo.wallet"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "822368000938-vc5n2fuh5i7j20uq0dfpo4lslsci06gu.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.bitorzo.wallet",
+            "certificate_hash": "8a857655bac31c27379e788e2fc5d268924511f5"
+          }
+        },
+        {
+          "client_id": "822368000938-iduqvaa2r3k7fepkcdvnffsmlsf240pe.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD0uQGCWgbWOngbSj-i4KfRe-h9FQO_A-k"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "822368000938-iduqvaa2r3k7fepkcdvnffsmlsf240pe.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

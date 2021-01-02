@@ -71,7 +71,7 @@ class PhoneAuthDataProvider with ChangeNotifier {
     // TODO - It's a patch that works for IL, not sure about other countries
     /*
     if((!phoneNumberController.text.startsWith("0")) && dialCode == "+972") {
-      print("Fixes phone");
+
 
     }  else {
 

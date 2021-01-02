@@ -510,9 +510,6 @@ class _PhoneAuthVerifyState extends State<PhoneAuthVerify> {
   }
 
   onFailed() async{
-   // await sl.get<DBHelper>().saveMyNumber("+9720545808456");
-    // print("My number is +972545808456, was just saved");
-//    _showSnackBar(phoneAuthDataProvider.message);
     _showSnackBar("PhoneAuth failed");
   }
 
